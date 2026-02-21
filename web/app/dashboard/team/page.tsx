@@ -3,7 +3,7 @@
 import { Pencil, Trash2, UserPlus, Link2, Users } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../../../lib/api";
-import type { Manager } from "@/types";
+import type { Manager, BusinessUnit } from "@/types";
 import { useAuth } from "../../../lib/auth-context";
 import { ProtectedGuard } from "../../components/protected-guard";
 
@@ -15,11 +15,12 @@ export default function TeamDashboard() {
 
   // ── Team list state ──
   const [members, setMembers] = useState<Manager[]>([]);
+  const [units, setUnits] = useState<BusinessUnit[]>([]);
   const [listLoading, setListLoading] = useState(true);
 
   // ── Edit state ──
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", position: "", office: "", skills: "", role: "" });
+  const [editForm, setEditForm] = useState({ name: "", position: "", office: "", skills: "", role: "", newPassword: "" });
 
   // ── Delete confirm state ──
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -41,8 +42,9 @@ export default function TeamDashboard() {
   const loadMembers = useCallback(async () => {
     setListLoading(true);
     try {
-      const data = await api.managers.list();
+      const [data, bu] = await Promise.all([api.managers.list(), api.businessUnits.list()]);
       setMembers(data);
+      setUnits(bu);
     } catch {
       setMembers([]);
     }
@@ -62,19 +64,22 @@ export default function TeamDashboard() {
       office: m.office ?? "",
       skills: (m.skills ?? []).join(", "),
       role: m.role ?? "MANAGER",
+      newPassword: "",
     });
   }
 
   async function saveEdit() {
     if (editingId === null) return;
     try {
-      await api.managers.update(editingId, {
+      const payload: any = {
         name: editForm.name,
         position: editForm.position,
         office: editForm.office,
         skills: editForm.skills.split(",").map((s) => s.trim()).filter(Boolean),
         role: editForm.role,
-      } as any);
+      };
+      if (editForm.newPassword) payload.newPassword = editForm.newPassword;
+      await api.managers.update(editingId, payload);
       setEditingId(null);
       await loadMembers();
     } catch { }
@@ -337,7 +342,10 @@ export default function TeamDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Офис</label>
-                  <input type="text" value={editForm.office} onChange={e => setEditForm(f => ({ ...f, office: e.target.value }))} className="mt-1 block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)" />
+                  <select value={editForm.office} onChange={e => setEditForm(f => ({ ...f, office: e.target.value }))} className="mt-1 block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)">
+                    <option value="">— Не выбран —</option>
+                    {units.map(u => <option key={u.id} value={u.office}>{u.office}{u.address ? ` — ${u.address}` : ""}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-300">Навыки (через запятую)</label>
@@ -351,6 +359,10 @@ export default function TeamDashboard() {
                     <option value="MANAGER">Менеджер</option>
                     <option value="USER">Пользователь</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300">Новый пароль</label>
+                  <input type="password" value={editForm.newPassword} onChange={e => setEditForm(f => ({ ...f, newPassword: e.target.value }))} placeholder="Оставьте пустым, чтобы не менять" className="mt-1 block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)" />
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
