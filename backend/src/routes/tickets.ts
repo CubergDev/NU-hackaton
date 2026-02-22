@@ -17,6 +17,8 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
     "/",
     async ({ query, user }) => {
       const companyId = (user as any).companyId;
+      const role = (user as any).role;
+      const userId = (user as any).id;
       const {
         limit = "50",
         offset = "0",
@@ -26,6 +28,12 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
         sentiment,
         language,
       } = query;
+
+      let managerId: number | null = null;
+      if (role === "MANAGER") {
+        const { getManagerId } = await import("../lib/user");
+        managerId = await getManagerId(userId);
+      }
 
       const rows = await db
         .select({
@@ -78,6 +86,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
             sentiment ? eq(ticketAnalysis.sentiment, sentiment) : undefined,
             language ? eq(ticketAnalysis.language, language) : undefined,
             eq(tickets.companyId, companyId),
+            managerId ? eq(assignments.managerId, managerId) : undefined,
           ),
         )
         .limit(Number(limit))
@@ -101,6 +110,15 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
 
   // GET /tickets/:id — detailed view
   .get("/:id", async ({ params, set, user }) => {
+    const role = (user as any).role;
+    const userId = (user as any).id;
+
+    let managerId: number | null = null;
+    if (role === "MANAGER") {
+      const { getManagerId } = await import("../lib/user");
+      managerId = await getManagerId(userId);
+    }
+
     const [row] = await db
       .select()
       .from(tickets)
@@ -112,6 +130,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
         and(
           eq(tickets.id, Number(params.id)),
           eq(tickets.companyId, (user as any).companyId),
+          managerId ? eq(assignments.managerId, managerId) : undefined,
         ),
       )
       .limit(1);

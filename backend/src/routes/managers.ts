@@ -30,6 +30,37 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
     return rows;
   })
 
+  // POST /managers/batch — create multiple managers
+  .post(
+    "/batch",
+    async ({ body, user }) => {
+      const companyId = (user as any).companyId;
+      if (!body || body.length === 0) return { inserted: 0 };
+
+      const values = body.map((m: any) => ({
+        companyId,
+        name: m.name,
+        position: m.position,
+        office: m.office,
+        skills: m.skills ?? [],
+        currentLoad: 0,
+      }));
+
+      const inserted = await db.insert(managers).values(values).returning();
+      return { inserted: inserted.length };
+    },
+    {
+      body: t.Array(
+        t.Object({
+          name: t.String(),
+          position: t.Optional(t.String()),
+          office: t.Optional(t.String()),
+          skills: t.Optional(t.Array(t.String())),
+        }),
+      ),
+    },
+  )
+
   // PUT /managers/:id — update a manager (and optionally user role)
   .put(
     "/:id",

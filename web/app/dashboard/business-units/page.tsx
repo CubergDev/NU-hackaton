@@ -1,89 +1,24 @@
 "use client";
 
-import { Building2, MapPin, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Building2, MapPin, Pencil, Plus, List, Map as MapIcon, Trash2, Upload } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { api } from "@/lib/api";
 import type { BusinessUnit } from "@/types";
+import { parseCSV } from "@/lib/csv";
 
-type FormData = {
-  office: string;
-  address: string;
-};
-
-type Suggestion = {
-  displayName: string;
-  latitude: number;
-  longitude: number;
-};
-
-const emptyForm: FormData = { office: "", address: "" };
+const InteractiveMap = dynamic(() => import("@/components/Map"), {
+  ssr: false,
+});
 
 export default function BusinessUnitsPage() {
+  const router = useRouter();
+  const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [units, setUnits] = useState<BusinessUnit[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState<FormData>(emptyForm);
-  const [saving, setSaving] = useState(false);
-
-  // Address autocomplete
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [sugLoading, setSugLoading] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
-
-  const fetchSuggestions = useCallback(
-    (q: string) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      if (q.length < 3) {
-        setSuggestions([]);
-        setShowSuggestions(false);
-        return;
-      }
-      debounceRef.current = setTimeout(async () => {
-        setSugLoading(true);
-        try {
-          const results = await api.businessUnits.suggestions(
-            q,
-            form.office || undefined,
-          );
-          setSuggestions(results);
-          setShowSuggestions(results.length > 0);
-        } catch {
-          setSuggestions([]);
-        } finally {
-          setSugLoading(false);
-        }
-      }, 400);
-    },
-    [form.office],
-  );
-
-  const handleAddressChange = (value: string) => {
-    setForm({ ...form, address: value });
-    fetchSuggestions(value);
-  };
-
-  const selectSuggestion = (s: Suggestion) => {
-    setForm({ ...form, address: s.displayName });
-    setShowSuggestions(false);
-    setSuggestions([]);
-  };
-
-  // Close suggestions on click outside
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(e.target as Node)
-      ) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = () => {
     setLoading(true);
@@ -96,45 +31,39 @@ export default function BusinessUnitsPage() {
 
   useEffect(load, []);
 
-  const openCreate = () => {
-    setEditId(null);
-    setForm(emptyForm);
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setShowForm(true);
-  };
+  const handleImport = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const openEdit = (bu: BusinessUnit) => {
-    setEditId(bu.id);
-    setForm({
-      office: bu.office,
-      address: bu.address ?? "",
-    });
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setShowForm(true);
-  };
-
-  const handleSubmit = async () => {
-    setSaving(true);
-    const payload: Record<string, unknown> = {
-      office: form.office,
-      address: form.address || undefined,
-    };
+    setImporting(true);
     try {
-      if (editId) {
-        await api.businessUnits.update(editId, payload);
+      const text = await file.text();
+      let data: any[] = [];
+      if (file.name.endsWith(".json")) {
+        data = JSON.parse(text);
+      } else if (file.name.endsWith(".csv")) {
+        data = parseCSV(text);
       } else {
-        await api.businessUnits.create(payload);
+        alert("Unsupported format. Please upload .json or .csv");
+        return;
       }
-      setShowForm(false);
-      setForm(emptyForm);
-      setEditId(null);
+
+      if (data.length === 0) {
+        alert("No data found to import");
+        return;
+      }
+
+      const res = await api.businessUnits.batch(data);
+      alert(`Successfully imported ${res.inserted} business units.`);
       load();
-    } catch (_e) {
-      alert("Ошибка сохранения");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to import business units");
     } finally {
-      setSaving(false);
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -147,6 +76,19 @@ export default function BusinessUnitsPage() {
       alert("Ошибка удаления");
     }
   };
+
+  const handleMapClick = (lat: number, lng: number) => {
+    router.push(`/dashboard/business-units/new?lat=${lat}&lon=${lng}`);
+  };
+
+  const mapMarkers = units
+    .filter((bu) => bu.latitude != null && bu.longitude != null)
+    .map((bu) => ({
+      id: bu.id,
+      position: [bu.latitude!, bu.longitude!] as [number, number],
+      title: `${bu.office} — ${bu.address}`,
+      onClick: () => router.push(`/dashboard/business-units/${bu.id}`),
+    }));
 
   return (
     <div className="page">
@@ -169,191 +111,68 @@ export default function BusinessUnitsPage() {
           </h1>
           <p className="page-subtitle">Филиалы и отделения компании</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={openCreate}>
-          <Plus size={14} /> Добавить
-        </button>
-      </div>
+        
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          {/* View Toggle */}
+          <div style={{ 
+            display: "flex", 
+            background: "var(--bg-card)", 
+            padding: 4, 
+            borderRadius: "var(--radius-md)",
+            border: "1px solid var(--border)"
+          }}>
+            <button
+              onClick={() => setViewMode("map")}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: "var(--radius-sm)",
+                border: "none", cursor: "pointer", fontSize: 13, fontWeight: 500,
+                background: viewMode === "map" ? "var(--bg-active)" : "transparent",
+                color: viewMode === "map" ? "var(--primary)" : "var(--text-secondary)",
+                transition: "all 0.2s"
+              }}
+            >
+              <MapIcon size={14} /> Карта
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: "var(--radius-sm)",
+                border: "none", cursor: "pointer", fontSize: 13, fontWeight: 500,
+                background: viewMode === "list" ? "var(--bg-active)" : "transparent",
+                color: viewMode === "list" ? "var(--primary)" : "var(--text-secondary)",
+                transition: "all 0.2s"
+              }}
+            >
+              <List size={14} /> Список
+            </button>
+          </div>
 
-      {showForm && (
-        <div className="card" style={{ marginBottom: 24 }}>
-          <div className="card-header">
-            <h3 className="card-title">
-              {editId ? "Редактирование офиса" : "Новый офис"}
-            </h3>
-          </div>
-          <div
-            className="card-body"
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-              maxWidth: 600,
-            }}
+          <div style={{ display: "flex", gap: 8 }}>
+          <input
+            type="file"
+            accept=".csv,.json"
+            ref={fileInputRef}
+            onChange={handleImport}
+            style={{ display: "none" }}
+          />
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
           >
-            <div className="input-wrap">
-              <label
-                htmlFor="office-city"
-                className="input-label"
-                style={{
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                Город / Название офиса *
-              </label>
-              <input
-                id="office-city"
-                className="input"
-                type="text"
-                value={form.office}
-                onChange={(e) => setForm({ ...form, office: e.target.value })}
-                placeholder="Алматы"
-              />
-            </div>
-            <div ref={suggestionsRef} style={{ position: "relative" }}>
-              <label
-                htmlFor="office-address"
-                className="input-label"
-                style={{
-                  textTransform: "uppercase",
-                  letterSpacing: "0.04em",
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                Адрес
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  id="office-address"
-                  className="input"
-                  type="text"
-                  value={form.address}
-                  onChange={(e) => handleAddressChange(e.target.value)}
-                  onFocus={() =>
-                    suggestions.length > 0 && setShowSuggestions(true)
-                  }
-                  placeholder="Начните вводить адрес..."
-                  style={{ paddingRight: 32 }}
-                />
-                <Search
-                  size={14}
-                  style={{
-                    position: "absolute",
-                    right: 10,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: sugLoading
-                      ? "var(--primary)"
-                      : "hsl(var(--muted-foreground))",
-                    animation: sugLoading ? "spin 1s linear infinite" : "none",
-                  }}
-                />
-              </div>
-              {showSuggestions && suggestions.length > 0 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "100%",
-                    left: 0,
-                    right: 0,
-                    zIndex: 50,
-                    background: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "var(--radius-lg)",
-                    boxShadow: "var(--shadow-md)",
-                    maxHeight: 240,
-                    overflowY: "auto",
-                    marginTop: 4,
-                  }}
-                >
-                  {suggestions.map((s, i) => (
-                    <button
-                      key={`${s.latitude}-${s.longitude}-${i}`}
-                      type="button"
-                      onClick={() => selectSuggestion(s)}
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 8,
-                        width: "100%",
-                        padding: "10px 14px",
-                        background: "transparent",
-                        border: "none",
-                        borderBottom:
-                          i < suggestions.length - 1
-                            ? "1px solid hsl(var(--border))"
-                            : "none",
-                        color: "hsl(var(--foreground))",
-                        fontSize: 13,
-                        textAlign: "left",
-                        cursor: "pointer",
-                        lineHeight: 1.5,
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          "hsl(var(--background))";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = "transparent";
-                      }}
-                    >
-                      <MapPin
-                        size={14}
-                        style={{
-                          marginTop: 3,
-                          flexShrink: 0,
-                          color: "var(--primary)",
-                        }}
-                      />
-                      <span
-                        style={{ color: "hsl(var(--secondary-foreground))" }}
-                      >
-                        {s.displayName}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <p
-                style={{
-                  fontSize: 11,
-                  color: "hsl(var(--muted-foreground))",
-                  marginTop: 4,
-                }}
-              >
-                📍 Координаты определяются автоматически по адресу
-              </p>
-            </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={handleSubmit}
-                disabled={saving || !form.office.trim()}
-              >
-                {saving
-                  ? "Определение координат..."
-                  : editId
-                    ? "Сохранить"
-                    : "Создать"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  setShowForm(false);
-                  setEditId(null);
-                }}
-              >
-                Отмена
-              </button>
-            </div>
-          </div>
+            <Upload size={14} />
+            {importing ? "Импорт..." : "Импорт"}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => router.push("/dashboard/business-units/new")}>
+            <Plus size={14} /> Добавить
+          </button>
         </div>
-      )}
+        </div>
+      </div>
 
       {loading ? (
         <div style={{ display: "grid", gap: 12 }}>
@@ -370,9 +189,19 @@ export default function BusinessUnitsPage() {
           className="card"
           style={{ textAlign: "center", padding: "40px 0" }}
         >
-          <p style={{ color: "hsl(var(--muted-foreground))" }}>
+          <p style={{ color: "var(--text-muted)" }}>
             Нет офисов. Добавьте первый!
           </p>
+        </div>
+      ) : viewMode === "map" ? (
+        <div className="card" style={{ height: "calc(100vh - 200px)", minHeight: 400, padding: 0, overflow: "hidden" }}>
+          <InteractiveMap 
+            markers={mapMarkers}
+            onMapClick={handleMapClick}
+            zoom={5}
+            // Dynamic bounds based on available markers
+            bounds={mapMarkers.length > 0 ? mapMarkers.map(m => m.position) : undefined}
+          />
         </div>
       ) : (
         <div className="card">
@@ -401,7 +230,7 @@ export default function BusinessUnitsPage() {
                 {units.map((bu) => (
                   <tr
                     key={bu.id}
-                    style={{ borderTop: "1px solid hsl(var(--border))" }}
+                    style={{ borderTop: "1px solid var(--border)" }}
                   >
                     <td style={{ padding: "12px", fontWeight: 600 }}>
                       <span
@@ -418,7 +247,7 @@ export default function BusinessUnitsPage() {
                     <td
                       style={{
                         padding: "12px",
-                        color: "hsl(var(--secondary-foreground))",
+                        color: "var(--text-secondary)",
                         fontSize: 13,
                       }}
                     >
@@ -430,7 +259,7 @@ export default function BusinessUnitsPage() {
                         textAlign: "center",
                         fontFamily: "monospace",
                         fontSize: 12,
-                        color: "hsl(var(--muted-foreground))",
+                        color: "var(--text-muted)",
                       }}
                     >
                       {bu.latitude != null && bu.longitude != null
@@ -448,7 +277,7 @@ export default function BusinessUnitsPage() {
                         <button
                           type="button"
                           className="btn btn-secondary btn-sm"
-                          onClick={() => openEdit(bu)}
+                          onClick={() => router.push(`/dashboard/business-units/${bu.id}`)}
                           title="Редактировать"
                         >
                           <Pencil size={13} />

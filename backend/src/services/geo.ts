@@ -80,7 +80,7 @@ export async function geocodeAddress(
   house: string | null,
 ): Promise<[number, number] | null> {
   const kzVariants = ["казахстан", "kazakhstan", "kz", "қазақстан"];
-  if (!country || !kzVariants.includes(country.toLowerCase().trim())) {
+  if (country && !kzVariants.includes(country.toLowerCase().trim())) {
     return null;
   }
 

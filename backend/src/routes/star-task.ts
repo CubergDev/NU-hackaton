@@ -30,6 +30,15 @@ export const starTaskRoutes = new Elysia({ prefix: "/star-task" })
         return { type: "error", text: "Unauthorized" };
       }
       const companyId = user.companyId as number;
+      const role = (user as any).role;
+      const userId = (user as any).id;
+
+      let managerId = 0;
+      if (role === "MANAGER") {
+        const { getManagerId } = await import("../lib/user");
+        managerId = (await getManagerId(userId)) || 0;
+      }
+
       const { messages } = body;
       if (!messages || messages.length === 0) {
         set.status = 400;
@@ -42,10 +51,9 @@ export const starTaskRoutes = new Elysia({ prefix: "/star-task" })
       const ollamaMessages = [
         {
           role: "system",
-          content: prompts.star_task.system.replace(
-            "{companyId}",
-            companyId.toString(),
-          ),
+          content: prompts.star_task.system
+            .replace("{companyId}", companyId.toString())
+            .replace("{managerId}", managerId.toString()),
         },
         ...messages,
       ];
@@ -111,16 +119,58 @@ export const starTaskRoutes = new Elysia({ prefix: "/star-task" })
             };
           }
 
+          // Cleanup common LLM hallucinations
+          sqlQuery = sqlQuery
+            .replace(/\{companyId\}/g, companyId.toString())
+            .replace(/\{managerId\}/g, managerId.toString());
+
+          // Find table alias for tickets or assignments if it exists
+          const ticketsAliasMatch = sqlQuery.match(/tickets\s+(\w+)/i);
+          const tAlias = ticketsAliasMatch ? ticketsAliasMatch[1] : "tickets";
+          
+          const assignmentsAliasMatch = sqlQuery.match(/assignments\s+(\w+)/i);
+          const aAlias = assignmentsAliasMatch ? assignmentsAliasMatch[1] : "assignments";
+
           // Force company filter check
-          if (!sqlQuery.toLowerCase().includes(`company_id = ${companyId}`)) {
-            // Attempt to inject it if missing (basic heuristic)
-            if (sqlQuery.toLowerCase().includes("where")) {
-              sqlQuery = sqlQuery.replace(
-                /where/i,
-                `WHERE company_id = ${companyId} AND `,
-              );
-            } else {
-              sqlQuery += ` WHERE company_id = ${companyId}`;
+          if (!sqlQuery.toLowerCase().includes("company_id")) {
+             if (sqlQuery.toLowerCase().includes("where")) {
+                sqlQuery = sqlQuery.replace(/where/i, `WHERE ${tAlias}.company_id = ${companyId} AND `);
+             } else {
+                sqlQuery += ` WHERE ${tAlias}.company_id = ${companyId}`;
+             }
+          }
+
+          // Force manager filter if role is MANAGER
+          if (managerId > 0 && !sqlQuery.includes(`manager_id = ${managerId}`)) {
+            if (
+              sqlQuery.toLowerCase().includes("from tickets") ||
+              sqlQuery.toLowerCase().includes("from ticket_analysis")
+            ) {
+              const fromTable = sqlQuery.toLowerCase().includes("from tickets") ? "tickets" : "ticket_analysis";
+              const tableAliasMatch = sqlQuery.match(new RegExp(`${fromTable}\\s+(\\w+)`, "i"));
+              const alias = tableAliasMatch ? tableAliasMatch[1] : fromTable;
+
+              if (!sqlQuery.toLowerCase().includes("join assignments")) {
+                sqlQuery = sqlQuery.replace(
+                  new RegExp(`from ${fromTable}(\\s+\\w+)?`, "i"),
+                  `FROM ${fromTable}$1 JOIN assignments a ON ${alias}.id = a.ticket_id`
+                );
+                // Injected alias for assignments is 'a'
+                sqlQuery = sqlQuery.replace(/where/i, `WHERE a.manager_id = ${managerId} AND `);
+              } else {
+                // If assignments already joined, use its alias
+                if (sqlQuery.toLowerCase().includes("where")) {
+                  sqlQuery = sqlQuery.replace(/where/i, `WHERE ${aAlias}.manager_id = ${managerId} AND `);
+                } else {
+                  sqlQuery += ` WHERE ${aAlias}.manager_id = ${managerId}`;
+                }
+              }
+            } else if (sqlQuery.toLowerCase().includes("from assignments")) {
+              if (sqlQuery.toLowerCase().includes("where")) {
+                sqlQuery = sqlQuery.replace(/where/i, `WHERE ${aAlias}.manager_id = ${managerId} AND `);
+              } else {
+                sqlQuery += ` WHERE ${aAlias}.manager_id = ${managerId}`;
+              }
             }
           }
 

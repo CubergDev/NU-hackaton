@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { db } from "../db";
 import { businessUnits, tickets } from "../db/schema";
-import { geocodeAddress, searchAddress } from "../services/geocode";
+import { geocodeAddress, searchAddress, reverseGeocodeAddress } from "../services/geocode";
 
 export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
 
@@ -19,6 +19,45 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         city: t.Optional(t.String()),
       }),
     },
+  )
+
+  // GET /business-units/reverse-geocode?lat=...&lon=... — get address from coords
+  .get(
+    "/reverse-geocode",
+    async ({ query: { lat, lon } }) => {
+      const address = await reverseGeocodeAddress(lat, lon);
+      return { address };
+    },
+    {
+      query: t.Object({
+        lat: t.Numeric(),
+        lon: t.Numeric(),
+      }),
+    }
+  )
+
+  // GET /business-units/:id — fetch single unit
+  .get(
+    "/:id",
+    async ({ params, set, user }) => {
+      const companyId = (user as any).companyId;
+      const [unit] = await db
+        .select()
+        .from(businessUnits)
+        .where(
+          and(
+            eq(businessUnits.id, Number(params.id)),
+            eq(businessUnits.companyId, companyId)
+          )
+        );
+
+      if (!unit) {
+        set.status = 404;
+        return { error: "Business unit not found" };
+      }
+
+      return unit;
+    }
   )
 
   // GET /business-units — list all for the current company
@@ -61,6 +100,47 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         office: t.String(),
         address: t.Optional(t.String()),
       }),
+    },
+  )
+
+  // POST /business-units/batch — create multiple business units
+  .post(
+    "/batch",
+    async ({ body, user }) => {
+      const companyId = (user as any).companyId;
+      if (!body || body.length === 0) return { inserted: 0 };
+
+      const values = [];
+      for (const item of body) {
+        let latitude: number | null = null;
+        let longitude: number | null = null;
+        if (item.address) {
+          const fullQuery = `${item.office}, ${item.address}, Казахстан`;
+          const coords = await geocodeAddress(fullQuery);
+          if (coords) {
+            latitude = coords.latitude;
+            longitude = coords.longitude;
+          }
+        }
+        values.push({
+          companyId,
+          office: item.office,
+          address: item.address,
+          latitude,
+          longitude,
+        });
+      }
+
+      const inserted = await db.insert(businessUnits).values(values).returning();
+      return { inserted: inserted.length };
+    },
+    {
+      body: t.Array(
+        t.Object({
+          office: t.String(),
+          address: t.Optional(t.String()),
+        }),
+      ),
     },
   )
 

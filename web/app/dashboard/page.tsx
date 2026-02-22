@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Clock,
   Inbox,
+  Info,
   RefreshCw,
   Users,
   Zap,
@@ -13,6 +14,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Manager, TicketRow } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   LangBadge,
   PriorityBadge,
@@ -59,6 +66,7 @@ export default function DashboardPage() {
     sentiment: "",
     language: "",
   });
+  const [selectedTicket, setSelectedTicket] = useState<TicketRow | null>(null);
   const [page, setPage] = useState(0);
   const limit = 20;
 
@@ -555,51 +563,158 @@ export default function DashboardPage() {
                   .filter((t) => t.assignmentId)
                   .slice(0, 10)
                   .map((t) => (
-                    <tr
-                      key={t.id}
-                      onClick={() => router.push(`/tickets/${t.id}`)}
-                    >
-                      <td
-                        style={{
-                          color: "var(--primary)",
-                          fontWeight: 600,
-                          fontSize: 13,
-                        }}
+                      <tr
+                        key={t.id}
+                        onClick={() => setSelectedTicket(t)}
+                        style={{ cursor: "pointer" }}
                       >
-                        #{t.guid?.slice(0, 12) || t.id}
-                      </td>
-                      <td style={{ fontSize: 13 }}>{t.ticketType ?? "—"}</td>
-                      <td style={{ fontSize: 13, fontWeight: 500 }}>
-                        {t.managerName ?? "—"}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: 13,
-                          color: "hsl(var(--secondary-foreground))",
-                        }}
-                      >
-                        {t.managerOffice ?? "—"}
-                      </td>
-                      <td
-                        style={{
-                          fontSize: 12,
-                          color: "hsl(var(--muted-foreground))",
-                        }}
-                      >
-                        {t.assignedAt
-                          ? new Date(t.assignedAt).toLocaleTimeString("ru-RU", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
-                          : "—"}
-                      </td>
-                    </tr>
+                        <td
+                          style={{
+                            color: "var(--primary)",
+                            fontWeight: 600,
+                            fontSize: 13,
+                          }}
+                        >
+                          #{t.guid?.slice(0, 12) || t.id}
+                        </td>
+                        <td style={{ fontSize: 13 }}>{t.ticketType ?? "—"}</td>
+                        <td style={{ fontSize: 13, fontWeight: 500 }}>
+                          {t.managerName ?? "—"}
+                        </td>
+                        <td
+                          style={{
+                            fontSize: 13,
+                            color: "hsl(var(--secondary-foreground))",
+                          }}
+                        >
+                          {t.managerOffice ?? "—"}
+                        </td>
+                        <td
+                          style={{
+                            fontSize: 12,
+                            color: "hsl(var(--muted-foreground))",
+                          }}
+                        >
+                          {t.assignedAt
+                            ? new Date(t.assignedAt).toLocaleTimeString("ru-RU", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "—"}
+                        </td>
+                      </tr>
                   ))}
               </tbody>
             </table>
           </div>
         </div>
       )}
+
+      {/* Routing Decision Modal */}
+      <Dialog
+        open={!!selectedTicket}
+        onOpenChange={(open) => !open && setSelectedTicket(null)}
+      >
+        <DialogContent className="sm:max-w-[500px] bg-card text-card-foreground border-border">
+          <DialogHeader>
+            <DialogTitle style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Clock size={18} className="text-primary" />
+              История маршрутизации
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedTicket && (
+            <div style={{ marginTop: 12 }}>
+              <div
+                style={{
+                  padding: "12px 16px",
+                  background: "hsl(var(--muted) / 0.5)",
+                  borderRadius: 12,
+                  marginBottom: 20,
+                  border: "1px solid hsl(var(--border))",
+                }}
+              >
+                <div style={{ fontSize: 12, color: "hsl(var(--muted-foreground))", marginBottom: 4 }}>
+                  Тикет #{selectedTicket.guid?.slice(0, 12)} • {selectedTicket.ticketType}
+                </div>
+                <div style={{ fontWeight: 600 }}>
+                  Назначен: {selectedTicket.managerName}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {(() => {
+                  let parsed: any = null;
+                  try {
+                    parsed = JSON.parse(selectedTicket.assignmentReason || "{}");
+                  } catch {
+                    parsed = { steps: [selectedTicket.assignmentReason] };
+                  }
+
+                  if (parsed && Array.isArray(parsed.steps)) {
+                    return parsed.steps.map((step: string, idx: number) => {
+                      const isLast = idx === parsed.steps.length - 1;
+                      return (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: order is stable
+                        <div key={idx} style={{ display: "flex", gap: 14, position: "relative" }}>
+                          {!isLast && (
+                            <div
+                              style={{
+                                position: "absolute",
+                                left: 7,
+                                top: 20,
+                                bottom: 0,
+                                width: 2,
+                                background: "hsl(var(--primary) / 0.15)",
+                              }}
+                            />
+                          )}
+                          <div
+                            style={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: "50%",
+                              background: isLast ? "var(--primary)" : "transparent",
+                              border: `2px solid ${isLast ? "var(--primary)" : "hsl(var(--primary) / 0.5)"}`,
+                              zIndex: 1,
+                              marginTop: 4,
+                            }}
+                          />
+                          <div
+                            style={{
+                                fontSize: 14,
+                                color: isLast ? "hsl(var(--foreground))" : "hsl(var(--muted-foreground))",
+                                paddingBottom: 24,
+                                lineHeight: 1.5,
+                            }}
+                          >
+                            {step}
+                          </div>
+                        </div>
+                      );
+                    });
+                  }
+                  return (
+                    <div className="text-muted-foreground text-sm italic">
+                      Нет детальной истории (старый формат данных)
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div style={{ marginTop: 24, display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => router.push(`/tickets/${selectedTicket.id}`)}
+                >
+                  <Info size={14} /> Перейти к тикету
+                </button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -27,13 +27,34 @@ export async function assignTicket(
   office: string;
   assignmentReason: string;
 }> {
-  // Retrieve the ticket's companyId to filter business units and managers
+  // Retrieve the ticket's companyId and context data for scoring
   const [ticketRow] = await db
-    .select({ companyId: tickets.companyId })
+    .select({
+      companyId: tickets.companyId,
+      city: tickets.city,
+      segment: tickets.segment,
+    })
     .from(tickets)
     .where(eq(tickets.id, ticketId))
     .limit(1);
+
   const companyId = ticketRow?.companyId;
+  const ticketCity = ticketRow?.city;
+  const segment = ticketRow?.segment;
+
+  // Retrieve analysis details for skills and language scoring
+  let ticketType = "";
+  let ticketLanguage = "";
+  if (analysisId) {
+    const [analysisRow] = await db
+      .select({ ticketType: ticketAnalysis.ticketType, language: ticketAnalysis.language })
+      .from(ticketAnalysis)
+      .where(eq(ticketAnalysis.id, analysisId))
+      .limit(1);
+
+    ticketType = analysisRow?.ticketType || "";
+    ticketLanguage = analysisRow?.language || "";
+  }
 
   // ── Step 1: Determine target office ──────────────────────────────────────
   let candidateOffice: string;
@@ -78,53 +99,103 @@ export async function assignTicket(
       candidateOffice = companyUnits[0].office;
     }
   } else {
-    // If AST-1 exists use it, otherwise use the first available
-    candidateOffice =
-      companyUnits.find((u) => u.office === "AST-1")?.office ||
-      companyUnits[0].office;
+    // Try to match by city name
+    let fallbackUnit = undefined;
+    if (ticketCity) {
+      const cityLower = ticketCity.toLowerCase();
+      fallbackUnit = companyUnits.find(
+        (u) =>
+          u.office.toLowerCase().includes(cityLower) ||
+          (u.address && u.address.toLowerCase().includes(cityLower)),
+      );
+    }
+
+    if (fallbackUnit) {
+      candidateOffice = fallbackUnit.office;
+    } else {
+      // If AST-1 exists use it, otherwise use the first available
+      candidateOffice =
+        companyUnits.find((u) => u.office === "AST-1")?.office ||
+        companyUnits[0].office;
+    }
   }
 
-  // ── Step 2: TOP-2 least-loaded managers in that office ───────────────────
-  // Note: we can import `and` from drizzle-orm but since it's already imported at the top, we might need to be careful. Oh wait, `and` is NOT imported at the top of assignment.ts!
-  // I will just use `eq(managers.office, candidateOffice)` which handles the office.
-  // We can filter managers by companyId additionally if needed, but the office shouldn't be shared.
+  // ── Step 2: Scoring all available managers ──────────────────────────────────
   let pool = await db
     .select({
       id: managers.id,
       name: managers.name,
       position: managers.position,
+      office: managers.office,
+      skills: managers.skills,
       currentLoad: managers.currentLoad,
     })
     .from(managers)
-    .where(eq(managers.office, candidateOffice))
-    .orderBy(asc(managers.currentLoad))
-    .limit(2);
-
-  if (pool.length === 0) {
-    // Fallback to first manager in any company office
-    candidateOffice = companyUnits[0].office;
-    pool = await db
-      .select({
-        id: managers.id,
-        name: managers.name,
-        position: managers.position,
-        currentLoad: managers.currentLoad,
-      })
-      .from(managers)
-      .where(eq(managers.office, candidateOffice))
-      .orderBy(asc(managers.currentLoad))
-      .limit(2);
-  }
+    .where(
+      companyId
+        ? sql`${managers.companyId} = ${companyId} AND ${managers.name} != 'Voice Agent Robot'`
+        : sql`${managers.name} != 'Voice Agent Robot'`,
+    );
 
   if (pool.length === 0) {
     throw new Error(`No managers found for company #${companyId}`);
   }
 
-  // ── Step 3: Round-Robin selection ─────────────────────────────────────────
-  const rrKey = `office:${candidateOffice}`;
-  const counter = await getAndIncrementRR(rrKey);
-  const pickedIndex = counter % pool.length; // 0 or 1 (or 0 if only 1 manager)
-  const chosen = pool[pickedIndex];
+  // Calculate scores for each manager
+  const scoredManagers = pool.map((m) => {
+    let score = 0;
+    const scoreLog: string[] = [];
+
+    // 1. Location Match
+    if (m.office === candidateOffice) {
+      score += 100;
+      scoreLog.push("+100 Office");
+    }
+
+    // 2. Skill Match
+    const managerSkills = m.skills || [];
+    if (ticketType && managerSkills.includes(ticketType)) {
+      score += 30;
+      scoreLog.push("+30 Type");
+    }
+    if (ticketLanguage && managerSkills.includes(ticketLanguage)) {
+      score += 30;
+      scoreLog.push("+30 Lang");
+    }
+
+    // 3. VIP Match
+    if (segment === "VIP") {
+      if (managerSkills.includes("VIP")) {
+        score += 50;
+        scoreLog.push("+50 VIP");
+      } else {
+        score -= 50;
+        scoreLog.push("-50 Non-VIP");
+      }
+    }
+
+    // 4. Load Penalty
+    const loadPenalty = (m.currentLoad || 0) * 10;
+    score -= loadPenalty;
+    scoreLog.push(`-${loadPenalty} Load`);
+
+    return {
+      manager: m,
+      score,
+      log: scoreLog.join(", "),
+    };
+  });
+
+  // Sort by score DESC, then by currentLoad ASC (to break ties)
+  scoredManagers.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return (a.manager.currentLoad || 0) - (b.manager.currentLoad || 0);
+  });
+
+  const bestMatch = scoredManagers[0];
+  const chosen = bestMatch.manager;
 
   // ── Step 4: Write assignment + increment load ─────────────────────────────
   const businessUnitId = await resolveBusinessUnitId(candidateOffice);
@@ -145,19 +216,26 @@ export async function assignTicket(
 
   // ── Step 5: Build human-readable reason (for jury) ────────────────────────
   const distancePart =
-    distanceKm != null ? ` (расстояние ~${distanceKm} км)` : "";
+    distanceKm != null ? ` (расстояние ~${distanceKm} км к офису ${candidateOffice})` : ` (к офису ${candidateOffice})`;
 
-  const poolDesc = pool
-    .map(
-      (m, i) =>
-        `${m.name} (${m.currentLoad} тик.)${i === pickedIndex ? " ← выбран" : ""}`,
-    )
-    .join(" vs ");
+  const logSteps = [
+    `1. Определение целевого офиса: ${candidateOffice}${distanceKm ? ` (ближайший, ${distanceKm}км)` : ' (по городу/дефолт)'}`,
+    `2. Рассчитаны веса для ${pool.length} менеджеров`,
+    `3. Лучший кандидат: ${chosen.name} с баллом ${bestMatch.score}`,
+    `4. Детали скоринга: ${bestMatch.log}`,
+    `5. Итоговая нагрузка: ${chosen.currentLoad || 0} -> ${(chosen.currentLoad || 0) + 1}`
+  ];
 
-  const assignmentReason =
-    `Офис: ${candidateOffice}${distancePart}. ` +
-    `Round Robin среди топ-${pool.length} наименее загруженных: ${poolDesc}. ` +
-    `Счётчик RR=${counter} → индекс ${pickedIndex}.`;
+  console.log(`[Assignment] Ticket ${ticketId} logic steps:\n${logSteps.join('\n')}`);
+
+  const assignmentReason = JSON.stringify({
+    score: bestMatch.score,
+    distancePart,
+    log: bestMatch.log,
+    ticketType,
+    load: chosen.currentLoad || 0,
+    steps: logSteps
+  });
 
   // Update the reason in the DB (update the just-inserted row)
   await db

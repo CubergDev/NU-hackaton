@@ -15,8 +15,8 @@
 
   --bg-hover: rgba(255, 255, 255, 0.05);
 
-  --primary: oklch(0.205 0 0);
-  --primary-hover: #1d4ed8;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
 
   --success: #16a34a;
   --warning: #d97706;
@@ -424,6 +424,24 @@ body {
 @media (min-width: 1024px) {
   .page {
     padding: 28px 32px;
+  }
+}
+
+.responsive-grid {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+  .responsive-grid {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+.map-container {
+  height: 400px;
+}
+@media (min-width: 900px) {
+  .map-container {
+    height: calc(100vh - 180px);
+    min-height: 500px;
   }
 }
 

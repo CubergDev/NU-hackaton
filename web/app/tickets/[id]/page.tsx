@@ -12,7 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import type { BusinessUnit, TicketDetail, TicketRow } from "@/types";
+import type { BusinessUnit, Manager, TicketDetail, TicketRow } from "@/types";
 import {
   LangBadge,
   SegmentBadge,
@@ -64,6 +64,17 @@ export default function TicketDetailPage() {
       .then(setBuList)
       .catch(() => {});
   }, []);
+
+  // Load managers for the dropdown
+  const [managerList, setManagerList] = useState<Manager[]>([]);
+  useEffect(() => {
+    if (canFullEdit) {
+      api.managers
+        .list()
+        .then(setManagerList)
+        .catch(() => {});
+    }
+  }, [canFullEdit]);
 
   if (loading)
     return (
@@ -127,6 +138,7 @@ export default function TicketDetailPage() {
       contact: t.contact || "",
       source: t.source || "",
       businessUnitId: t.businessUnitId ?? null,
+      managerId: m?.id ?? null,
     } as any);
     setIsEditing(true);
   };
@@ -383,6 +395,37 @@ export default function TicketDetailPage() {
                       {buList.map((bu) => (
                         <option key={bu.id} value={bu.id}>
                           {bu.office} — {bu.address}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <label
+                      htmlFor="edit-manager"
+                      className="block text-sm font-medium text-gray-300 mb-1"
+                    >
+                      Исполнитель
+                    </label>
+                    <select
+                      id="edit-manager"
+                      value={
+                        ((editData as Record<string, unknown>)
+                          .managerId as string) ?? ""
+                      }
+                      onChange={(e) =>
+                        setEditData((prev) => ({
+                          ...prev,
+                          managerId: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        }))
+                      }
+                      className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
+                    >
+                      <option value="">— Не назначено —</option>
+                      {managerList.map((mgr) => (
+                        <option key={mgr.id} value={mgr.id}>
+                          {mgr.name} — {mgr.office}
                         </option>
                       ))}
                     </select>

@@ -1,37 +1,101 @@
 "use client";
 
-import { Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Users, Upload } from "lucide-react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import { api } from "@/lib/api";
 import type { Manager } from "@/types";
 import { useI18n } from "../../dictionaries/i18n";
+import { parseCSV } from "@/lib/csv";
 
 export default function ManagersPage() {
   const [managers, setManagers] = useState<Manager[]>([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const { t } = useI18n();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
+  const fetchManagers = () => {
+    setLoading(true);
     api.managers
       .list()
       .then(setManagers)
       .catch(() => setManagers([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchManagers();
   }, []);
+
+  const handleImport = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    try {
+      const text = await file.text();
+      let data: any[] = [];
+      if (file.name.endsWith(".json")) {
+        data = JSON.parse(text);
+      } else if (file.name.endsWith(".csv")) {
+        data = parseCSV(text);
+      } else {
+        alert("Unsupported format. Please upload .json or .csv");
+        return;
+      }
+
+      if (data.length === 0) {
+        alert("No data found to import");
+        return;
+      }
+
+      const res = await api.managers.batch(data);
+      alert(`Successfully imported ${res.inserted} managers.`);
+      fetchManagers();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to import managers");
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
 
   const maxLoad = Math.max(...managers.map((m) => m.currentLoad ?? 0), 1);
 
   return (
     <div className="page">
-      <div className="page-header">
-        <h1
-          className="page-title"
-          style={{ display: "flex", alignItems: "center", gap: 8 }}
-        >
-          <Users size={20} />
-          {t.sidebar.managers}
-        </h1>
-        <p className="page-subtitle">{t.managers.subtitle}</p>
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1
+            className="page-title"
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Users size={20} />
+            {t.sidebar.managers}
+          </h1>
+          <p className="page-subtitle">{t.managers.subtitle}</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            type="file"
+            accept=".csv,.json"
+            ref={fileInputRef}
+            onChange={handleImport}
+            style={{ display: "none" }}
+          />
+          <button 
+            className="btn btn-primary" 
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            style={{ display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Upload size={16} />
+            {importing ? "Импорт..." : "Импорт"}
+          </button>
+        </div>
       </div>
 
       <div className="card">

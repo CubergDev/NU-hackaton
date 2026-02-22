@@ -61,6 +61,7 @@ export const tickets = pgTable("tickets", {
   source: varchar("source", { length: 64 }),
   status: varchar("status", { length: 32 }).default("Новый"),
   notes: text("notes").default(""),
+  priority: varchar("priority", { length: 16 }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

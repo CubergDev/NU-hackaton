@@ -293,15 +293,31 @@ function DynamicChart({
 }: {
   dataObj: NonNullable<StarTaskResult["data"]>;
 }) {
-  const data = dataObj.rows.map((row) => {
+  const { columns, rows } = dataObj;
+
+  // 1. Identify numeric and string columns
+  const numericIdx = rows[0]?.findIndex((val) => typeof val === "number") ?? -1;
+  const valueIdx = numericIdx !== -1 ? numericIdx : 1; // Default to 2nd col if no number found
+  const valueKey = columns[valueIdx];
+
+  const data = rows.map((row) => {
     const obj: Record<string, unknown> = {};
-    dataObj.columns.forEach((col, i) => {
-      obj[col] = (row as unknown[])[i];
+    const stringParts: string[] = [];
+
+    columns.forEach((col, i) => {
+      const val = (row as unknown[])[i];
+      obj[col] = val;
+      if (i !== valueIdx && val !== null && val !== undefined) {
+        stringParts.push(String(val));
+      }
     });
+
+    // nameKey will be a combination of all other columns if there are many
+    obj["_name"] = stringParts.join(" - ") || "Data";
     return obj;
   });
-  const nameKey = dataObj.columns[0];
-  const valueKey = dataObj.columns[1];
+
+  const nameKey = "_name";
   const isVertical = data.length > 6;
 
   if (dataObj.chartType === "pie") {

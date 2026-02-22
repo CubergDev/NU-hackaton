@@ -57,6 +57,11 @@ export const api = {
   },
   managers: {
     list: () => apiFetch<Manager[]>("/api/managers"),
+    batch: (data: any[]) =>
+      apiFetch<{ inserted: number }>("/api/managers/batch", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     update: (id: number, data: Partial<Manager> & { role?: string }) =>
       apiFetch<Manager>(`/api/managers/${id}`, {
         method: "PUT",
@@ -72,6 +77,11 @@ export const api = {
   },
   businessUnits: {
     list: () => apiFetch<BusinessUnit[]>("/api/business-units"),
+    batch: (data: any[]) =>
+      apiFetch<{ inserted: number }>("/api/business-units/batch", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
     suggestions: (q: string, city?: string) => {
       const params = new URLSearchParams({ q });
       if (city) params.set("city", city);
@@ -79,6 +89,11 @@ export const api = {
         { displayName: string; latitude: number; longitude: number }[]
       >(`/api/business-units/suggestions?${params}`);
     },
+    reverseGeocode: (lat: number, lon: number) => {
+      const params = new URLSearchParams({ lat: lat.toString(), lon: lon.toString() });
+      return apiFetch<{ address: string }>(`/api/business-units/reverse-geocode?${params}`);
+    },
+    get: (id: number) => apiFetch<BusinessUnit>(`/api/business-units/${id}`),
     create: (data: Partial<BusinessUnit>) =>
       apiFetch<BusinessUnit>("/api/business-units", {
         method: "POST",

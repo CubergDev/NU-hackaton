@@ -421,6 +421,14 @@ export const authRoutes = new Elysia()
             .set({ isUsed: 1 })
             .where(eq(invitations.id, invite.id));
 
+          // Create a manager profile for them, similar to /create-user
+          await db.insert(managers).values({
+            companyId: newUser.companyId as number,
+            userId: newUser.id,
+            name: newUser.name || email.split("@")[0],
+            position: newUser.role === "MANAGER" ? "Менеджер" : "Сотрудник",
+          });
+
           // Set cookie
           const authToken = await jwt.sign({
             id: newUser.id,

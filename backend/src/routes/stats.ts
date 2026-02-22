@@ -7,9 +7,18 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
   "/",
   async ({ user }) => {
     const companyId = (user as any).companyId;
+    const role = (user as any).role;
+    const userId = (user as any).id;
+
+    let managerId: number | null = null;
+    if (role === "MANAGER") {
+      const { getManagerId } = await import("../lib/user");
+      managerId = await getManagerId(userId);
+    }
+
     // Check Redis cache first (TTL 60 sec)
-    // We should include companyId in cache key
-    const cacheKey = `stats_${companyId}`;
+    // We should include companyId and managerId in cache key
+    const cacheKey = managerId ? `stats_${companyId}_mgr_${managerId}` : `stats_${companyId}`;
     const cached = await getCachedStats(cacheKey);
     if (cached) return cached;
 
@@ -21,14 +30,18 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
         COUNT(DISTINCT t.id) FILTER (WHERE t.segment IN ('VIP','Priority')) AS vip_count
       FROM tickets t
       LEFT JOIN ticket_analysis ta ON ta.ticket_id = t.id
+      LEFT JOIN assignments a ON a.ticket_id = t.id
       WHERE t.company_id = ${companyId}
+      ${managerId ? sql`AND a.manager_id = ${managerId}` : sql``}
     `);
 
     const byType = await db.execute(sql`
       SELECT ta.ticket_type AS name, COUNT(*) AS count
       FROM ticket_analysis ta
       JOIN tickets t ON t.id = ta.ticket_id
+      LEFT JOIN assignments a ON a.ticket_id = t.id
       WHERE t.company_id = ${companyId}
+      ${managerId ? sql`AND a.manager_id = ${managerId}` : sql``}
       GROUP BY ta.ticket_type ORDER BY count DESC
     `);
 
@@ -36,7 +49,9 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
       SELECT ta.sentiment AS name, COUNT(*) AS count
       FROM ticket_analysis ta
       JOIN tickets t ON t.id = ta.ticket_id
+      LEFT JOIN assignments a ON a.ticket_id = t.id
       WHERE t.company_id = ${companyId}
+      ${managerId ? sql`AND a.manager_id = ${managerId}` : sql``}
       GROUP BY ta.sentiment
     `);
 
@@ -45,20 +60,24 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
       FROM assignments a
       JOIN managers m ON m.id = a.manager_id
       WHERE m.company_id = ${companyId}
+      ${managerId ? sql`AND a.manager_id = ${managerId}` : sql``}
       GROUP BY m.office ORDER BY count DESC
     `);
 
     const bySegment = await db.execute(sql`
-      SELECT segment AS name, COUNT(*) AS count
-      FROM tickets
-      WHERE company_id = ${companyId}
-      GROUP BY segment
+      SELECT t.segment AS name, COUNT(*) AS count
+      FROM tickets t
+      LEFT JOIN assignments a ON a.ticket_id = t.id
+      WHERE t.company_id = ${companyId}
+      ${managerId ? sql`AND a.manager_id = ${managerId}` : sql``}
+      GROUP BY t.segment
     `);
 
     const managerLoads = await db.execute(sql`
       SELECT name, office, current_load AS load, position
       FROM managers
       WHERE company_id = ${companyId}
+      ${managerId ? sql`AND id = ${managerId}` : sql``}
       ORDER BY current_load DESC
       LIMIT 20
     `);
