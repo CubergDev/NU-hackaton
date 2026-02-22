@@ -7,6 +7,7 @@ export const en = {
     starTask: "Star Task ⭐",
     importData: "Import Data",
     manageTeam: "Manage Team",
+    businessUnits: "Offices",
   },
   topbar: {
     title: "FIRE — Freedom Intelligent Routing Engine",
@@ -121,24 +122,30 @@ export const en = {
   },
   landing: {
     heroTitle: "Intelligence in Every Request",
-    heroSubtitle: "Revolutionize your customer support with automated routing, sentiment analysis, and intelligent workload distribution.",
+    heroSubtitle:
+      "Revolutionize your customer support with automated routing, sentiment analysis, and intelligent workload distribution.",
     startNow: "Start Now",
     featuresTitle: "Why Choose FIRE?",
     feature1Title: "AI-Powered Routing",
-    feature1Desc: "Every ticket is automatically categorized and assigned to the best-matching manager based on skills and workload.",
+    feature1Desc:
+      "Every ticket is automatically categorized and assigned to the best-matching manager based on skills and workload.",
     feature2Title: "Multi-Tenancy",
-    feature2Desc: "Complete data isolation. Each company manages its own team, clients, and tickets in a secure workspace.",
+    feature2Desc:
+      "Complete data isolation. Each company manages its own team, clients, and tickets in a secure workspace.",
     feature3Title: "Voice AI Agent",
-    feature3Desc: "A built-in AI manager handles technical consultations and complex sentiment analysis out of the box.",
+    feature3Desc:
+      "A built-in AI manager handles technical consultations and complex sentiment analysis out of the box.",
   },
   import: {
     title: "Import Tickets",
-    subtitle: "Upload CSV, Excel, JSON or paste a Google Sheets URL to preview and add historical or batch data.",
+    subtitle:
+      "Upload CSV, Excel, JSON or paste a Google Sheets URL to preview and add historical or batch data.",
     adminOnly: "Only Admins can import new ticket data.",
     uploadLabel: "Upload File (.csv, .xlsx, .json)",
     or: "OR",
     googleLink: "Google Sheets Link",
-    googleLinkDesc: 'Make sure the link sharing is set to "Anyone with the link".',
+    googleLinkDesc:
+      'Make sure the link sharing is set to "Anyone with the link".',
     loadPreview: "Load Preview",
     loadingPreview: "Loading Preview...",
     dataPreview: "Data Preview",
@@ -148,6 +155,6 @@ export const en = {
     importing: "Importing...",
     noData: "No data could be previewed.",
     success: "Successfully imported {count} records!",
-    failed: "Import failed"
+    failed: "Import failed",
   },
 };

@@ -1,16 +1,15 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import type { User } from "@/types";
 import { api } from "./api"; // Assuming a lib/api.ts exists or will be created
-
-export type User = {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-  companyId: number;
-};
 
 type AuthContextType = {
   user: User | null;
@@ -33,12 +32,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const response = await api.get<{ user?: User; error?: string }>(
         "/auth/me",
       );
-      if (response && response.user) {
+      if (response?.user) {
         setUser(response.user);
       } else {
         setUser(null);
@@ -49,11 +48,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshUser();
-  }, []);
+  }, [refreshUser]);
 
   const login = (newUser: User) => {
     setUser(newUser);

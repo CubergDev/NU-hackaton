@@ -154,3 +154,12 @@ export interface ProcessResult {
   count: number;
   errors: string[];
 }
+
+// ── User ──────────────────────────────────────────────────────────────
+export interface User {
+  id: number;
+  email: string | null;
+  name: string | null;
+  role: string | null;
+  companyId: number | null;
+}

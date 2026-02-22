@@ -12,6 +12,17 @@ const MapInner = dynamic(() => import("./map-inner"), {
   ),
 });
 
-export default function Map(props: any) {
+interface MapProps {
+  center: [number, number];
+  zoom?: number;
+  markers?: {
+    id: string;
+    position: [number, number];
+    label: string;
+  }[];
+  height?: number | string;
+}
+
+export default function TicketMap(props: MapProps) {
   return <MapInner {...props} />;
 }

@@ -36,7 +36,7 @@ export const api = {
 
   tickets: {
     list: (params?: Record<string, string>) => {
-      const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+      const qs = params ? `?${new URLSearchParams(params).toString()}` : "";
       return apiFetch<TicketRow[]>(`/api/tickets${qs}`);
     },
     get: (id: number) => apiFetch<TicketDetail>(`/api/tickets/${id}`),
@@ -75,9 +75,9 @@ export const api = {
     suggestions: (q: string, city?: string) => {
       const params = new URLSearchParams({ q });
       if (city) params.set("city", city);
-      return apiFetch<{ displayName: string; latitude: number; longitude: number }[]>(
-        `/api/business-units/suggestions?${params}`
-      );
+      return apiFetch<
+        { displayName: string; latitude: number; longitude: number }[]
+      >(`/api/business-units/suggestions?${params}`);
     },
     create: (data: Partial<BusinessUnit>) =>
       apiFetch<BusinessUnit>("/api/business-units", {

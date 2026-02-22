@@ -6,7 +6,6 @@ import {
   Clock,
   Inbox,
   RefreshCw,
-  TrendingUp,
   Users,
   Zap,
 } from "lucide-react";
@@ -14,13 +13,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { Manager, TicketRow } from "@/types";
-import { useI18n } from "../../dictionaries/i18n";
 import {
   LangBadge,
   PriorityBadge,
   SegmentBadge,
   SentimentBadge,
-} from "../components/badges";
+} from "../../components/badges";
+import { useI18n } from "../../dictionaries/i18n";
 
 const OFFICES = [
   "Все офисы",
@@ -124,6 +123,7 @@ export default function DashboardPage() {
           <p className="page-subtitle">AI-powered ticket routing overview</p>
         </div>
         <button
+          type="button"
           className={`btn ${processState === "loading" ? "btn-secondary" : "btn-dark"}`}
           onClick={handleProcess}
           disabled={processState === "loading"}
@@ -206,7 +206,11 @@ export default function DashboardPage() {
               <Inbox size={16} />
               Incoming Queue
             </h2>
-            <button className="btn btn-secondary btn-sm" onClick={loadTickets}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={loadTickets}
+            >
               <RefreshCw size={13} />
               Refresh
             </button>
@@ -258,6 +262,7 @@ export default function DashboardPage() {
               filters.sentiment ||
               filters.language) && (
               <button
+                type="button"
                 className="btn btn-secondary btn-sm btn-reset"
                 onClick={() => {
                   setFilters({
@@ -290,7 +295,8 @@ export default function DashboardPage() {
               <tbody>
                 {loading ? (
                   Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i} style={{ cursor: "default" }}>
+                    // biome-ignore lint/suspicious/noArrayIndexKey: order is stable for skeleton
+                    <tr key={`skeleton-${i}`} style={{ cursor: "default" }}>
                       <td>
                         <div
                           className="skeleton"
@@ -342,7 +348,7 @@ export default function DashboardPage() {
                       style={{
                         textAlign: "center",
                         padding: "40px 0",
-                        color: "var(--text-muted)",
+                        color: "hsl(var(--muted-foreground))",
                       }}
                     >
                       {t.dashboard.pressProcess}
@@ -392,12 +398,16 @@ export default function DashboardPage() {
                         className="col-hide-xs"
                         style={{
                           fontSize: 13,
-                          color: "var(--text-secondary)",
+                          color: "hsl(var(--secondary-foreground))",
                           whiteSpace: "nowrap",
                         }}
                       >
                         {t.managerName ?? (
-                          <span style={{ color: "var(--text-muted)" }}>—</span>
+                          <span
+                            style={{ color: "hsl(var(--muted-foreground))" }}
+                          >
+                            —
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -412,6 +422,7 @@ export default function DashboardPage() {
               {loading ? "..." : `Показано ${tickets.length} тикетов`}
             </span>
             <button
+              type="button"
               className="btn btn-secondary btn-sm"
               disabled={page === 0}
               onClick={() => setPage((p) => p - 1)}
@@ -419,6 +430,7 @@ export default function DashboardPage() {
               ← {t.dashboard.prev}
             </button>
             <button
+              type="button"
               className="btn btn-secondary btn-sm"
               disabled={tickets.length < limit}
               onClick={() => setPage((p) => p + 1)}
@@ -450,7 +462,7 @@ export default function DashboardPage() {
             {managers.length === 0 ? (
               <p
                 style={{
-                  color: "var(--text-muted)",
+                  color: "hsl(var(--muted-foreground))",
                   fontSize: 13,
                   textAlign: "center",
                   padding: "20px 0",
@@ -480,7 +492,10 @@ export default function DashboardPage() {
                           {m.name}
                         </div>
                         <div
-                          style={{ fontSize: 12, color: "var(--text-muted)" }}
+                          style={{
+                            fontSize: 12,
+                            color: "hsl(var(--muted-foreground))",
+                          }}
                         >
                           {m.office} • {m.position}
                         </div>
@@ -492,7 +507,7 @@ export default function DashboardPage() {
                           color:
                             cls === "danger"
                               ? "var(--danger)"
-                              : "var(--text-secondary)",
+                              : "hsl(var(--secondary-foreground))",
                         }}
                       >
                         {m.currentLoad ?? 0} тик.
@@ -558,11 +573,19 @@ export default function DashboardPage() {
                         {t.managerName ?? "—"}
                       </td>
                       <td
-                        style={{ fontSize: 13, color: "var(--text-secondary)" }}
+                        style={{
+                          fontSize: 13,
+                          color: "hsl(var(--secondary-foreground))",
+                        }}
                       >
                         {t.managerOffice ?? "—"}
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                      <td
+                        style={{
+                          fontSize: 12,
+                          color: "hsl(var(--muted-foreground))",
+                        }}
+                      >
                         {t.assignedAt
                           ? new Date(t.assignedAt).toLocaleTimeString("ru-RU", {
                               hour: "2-digit",

@@ -49,8 +49,10 @@ export default function ManagersPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                   <tr key={i} style={{ cursor: "default" }}>
                     {Array.from({ length: 5 }).map((_, j) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                       <td key={j}>
                         <div
                           className="skeleton"
@@ -67,7 +69,7 @@ export default function ManagersPage() {
                     style={{
                       textAlign: "center",
                       padding: "40px 0",
-                      color: "var(--text-muted)",
+                      color: "hsl(var(--muted-foreground))",
                     }}
                   >
                     Нет данных
@@ -85,7 +87,10 @@ export default function ManagersPage() {
                         {m.name}
                       </td>
                       <td
-                        style={{ fontSize: 13, color: "var(--text-secondary)" }}
+                        style={{
+                          fontSize: 13,
+                          color: "hsl(var(--secondary-foreground))",
+                        }}
                       >
                         {m.position ?? "—"}
                       </td>
@@ -122,7 +127,7 @@ export default function ManagersPage() {
                               color:
                                 cls === "danger"
                                   ? "var(--danger)"
-                                  : "var(--text-secondary)",
+                                  : "hsl(var(--secondary-foreground))",
                               minWidth: 28,
                               textAlign: "right",
                             }}

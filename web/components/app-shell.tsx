@@ -1,14 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { useAuth } from "../../lib/auth-context";
+import { useAuth } from "../lib/auth-context";
+import { SidebarProvider } from "./ui/sidebar";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
   const pathname = usePathname();
 
   const isPublicPage =
@@ -28,19 +27,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="app-shell">
-      {/* Mobile overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? "open" : ""}`}
-        onClick={() => setSidebarOpen(false)}
-      />
+    <SidebarProvider>
+      <div className="app-shell w-full">
+        <Sidebar />
 
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      <div className="main-area">
-        <Topbar onMenuClick={() => setSidebarOpen((v) => !v)} />
-        <main>{children}</main>
+        <div className="main-area flex-1">
+          <Topbar />
+          <main>{children}</main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

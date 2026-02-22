@@ -1,13 +1,11 @@
 "use client";
 
 import {
-  Bot,
   ChevronDown,
   ChevronUp,
   Database,
   Send,
   Sparkles,
-  TrendingUp,
   User,
   Zap,
 } from "lucide-react";
@@ -16,7 +14,6 @@ import {
   Bar,
   BarChart,
   Cell,
-  Legend,
   Line,
   LineChart,
   Pie,
@@ -26,7 +23,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { api } from "@/lib/api";
 import type { StarTaskResult } from "@/types";
 import { useI18n } from "../../dictionaries/i18n";
 import s from "./star-task.module.css";
@@ -78,7 +74,7 @@ export default function StarTaskPage() {
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, []);
 
   async function handleSubmit(forcedQuery?: string) {
     const text = forcedQuery || query.trim();
@@ -209,6 +205,7 @@ export default function StarTaskPage() {
         <div className={s.chipsScroll}>
           {EXAMPLES.map((ex) => (
             <button
+              type="button"
               key={ex.text}
               className={s.chip}
               onClick={() => handleSubmit(ex.text)}
@@ -228,10 +225,10 @@ export default function StarTaskPage() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               disabled={loading}
-              autoFocus
             />
           </div>
           <button
+            type="button"
             className={s.searchBtn}
             onClick={() => handleSubmit()}
             disabled={!query.trim() || loading}
@@ -251,6 +248,7 @@ function ChartBlock({
   t,
 }: {
   data: NonNullable<StarTaskResult["data"]>;
+  // biome-ignore lint/suspicious/noExplicitAny: i18n
   t: any;
 }) {
   const [sqlOpen, setSqlOpen] = useState(false);
@@ -274,7 +272,11 @@ function ChartBlock({
         </div>
       </div>
 
-      <button className={s.sqlToggleChat} onClick={() => setSqlOpen((v) => !v)}>
+      <button
+        type="button"
+        className={s.sqlToggleChat}
+        onClick={() => setSqlOpen((v) => !v)}
+      >
         <Database size={12} />
         <span>{sqlOpen ? t.starTask.hideSql : t.starTask.showSql}</span>
         {sqlOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -318,6 +320,7 @@ function DynamicChart({
             labelLine={false}
           >
             {data.map((_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: order is stable
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>

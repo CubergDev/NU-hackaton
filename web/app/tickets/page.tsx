@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import type { TicketRow } from "@/types";
-import { useI18n } from "../../dictionaries/i18n";
 import {
   LangBadge,
   PriorityBadge,
   SegmentBadge,
   SentimentBadge,
-} from "../components/badges";
+} from "../../components/badges";
+import { useI18n } from "../../dictionaries/i18n";
 
 const SEGMENTS = ["Все", "Mass", "VIP", "Priority"];
 const SENTIMENTS = ["Все", "Позитивный", "Нейтральный", "Негативный"];
@@ -74,6 +74,7 @@ export default function TicketsPage() {
           <p className="page-subtitle">{t.tickets.subtitle}</p>
         </div>
         <button
+          type="button"
           className="btn btn-secondary btn-sm"
           onClick={load}
           disabled={loading}
@@ -119,6 +120,7 @@ export default function TicketsPage() {
           ))}
           {Object.values(filters).some(Boolean) && (
             <button
+              type="button"
               className="btn btn-secondary btn-sm"
               onClick={() => {
                 setFilters({ segment: "", sentiment: "", language: "" });
@@ -148,8 +150,10 @@ export default function TicketsPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                   <tr key={i} style={{ cursor: "default" }}>
                     {Array.from({ length: 9 }).map((_, j) => (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                       <td key={j}>
                         <div
                           className="skeleton"
@@ -166,7 +170,7 @@ export default function TicketsPage() {
                     style={{
                       textAlign: "center",
                       padding: "40px 0",
-                      color: "var(--text-muted)",
+                      color: "hsl(var(--muted-foreground))",
                     }}
                   >
                     Нет тикетов
@@ -214,11 +218,19 @@ export default function TicketsPage() {
                       <LangBadge lang={t.language} />
                     </td>
                     <td
-                      style={{ fontSize: 13, color: "var(--text-secondary)" }}
+                      style={{
+                        fontSize: 13,
+                        color: "hsl(var(--secondary-foreground))",
+                      }}
                     >
                       {t.managerName ?? "—"}
                     </td>
-                    <td style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    <td
+                      style={{
+                        fontSize: 13,
+                        color: "hsl(var(--muted-foreground))",
+                      }}
+                    >
                       {t.businessUnitOffice ?? "—"}
                     </td>
                   </tr>
@@ -235,6 +247,7 @@ export default function TicketsPage() {
               : `${page * limit + 1}–${page * limit + tickets.length} тикетов`}
           </span>
           <button
+            type="button"
             className="btn btn-secondary btn-sm"
             disabled={page === 0}
             onClick={() => setPage((p) => p - 1)}
@@ -242,6 +255,7 @@ export default function TicketsPage() {
             ← {t.dashboard.prev}
           </button>
           <button
+            type="button"
             className="btn btn-secondary btn-sm"
             disabled={tickets.length < limit}
             onClick={() => setPage((p) => p + 1)}

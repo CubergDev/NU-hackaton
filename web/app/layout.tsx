@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { AppShell } from "../components/app-shell";
 import { I18nProvider } from "../dictionaries/i18n";
 import { AuthProvider } from "../lib/auth-context";
-import { AppShell } from "./components/app-shell";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -27,8 +27,9 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <head>
         <script
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: Need it to set theme on load to prevent flash
           dangerouslySetInnerHTML={{
-             __html: `
+            __html: `
               try {
                 if (localStorage.getItem('theme') === 'light' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: light)').matches)) {
                   document.documentElement.setAttribute('data-theme', 'light');
@@ -36,7 +37,7 @@ export default function RootLayout({
                   document.documentElement.setAttribute('data-theme', 'dark');
                 }
               } catch (_) {}
-            `
+            `,
           }}
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />

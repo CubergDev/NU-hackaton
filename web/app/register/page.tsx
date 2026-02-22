@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type { User } from "@/types";
+import { LanguageSwitcher } from "../../components/language-switcher";
+import { useI18n } from "../../dictionaries/i18n";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
 import { GoogleLoginButton } from "../login/google-button";
-import { useI18n } from "../../dictionaries/i18n";
-import { LanguageSwitcher } from "../components/language-switcher";
 
 export default function RegisterPage() {
   const { t } = useI18n();
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     try {
       const res = await api.post<{
         success?: boolean;
-        user?: any;
+        user?: unknown;
         error?: string;
       }>("/auth/register", {
         companyName,
@@ -39,18 +40,18 @@ export default function RegisterPage() {
       }
 
       if (res.success && res.user) {
-        login(res.user);
+        login(res.user as User);
         router.push("/dashboard");
       }
-    } catch (e: any) {
+    } catch {
       setError("Registration failed");
     }
   };
 
   return (
-    <div className="min-h-screen bg-(--bg) flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-(--text-primary)">
+    <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-(--text-primary)">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
           FIRE Routing Engine
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
@@ -59,11 +60,14 @@ export default function RegisterPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <LanguageSwitcher />
-        <div className="bg-(--bg-card) py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-(--border)">
+        <LanguageSwitcher className="mb-8" />
+        <div className="bg-card py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-border">
           <form className="space-y-6" onSubmit={handleRegister}>
             <div>
-              <label htmlFor="companyName" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="companyName"
+                className="block text-sm font-medium text-gray-300"
+              >
                 {t.auth.companyName}
               </label>
               <div className="mt-1">
@@ -73,13 +77,16 @@ export default function RegisterPage() {
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-(--bg) placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-(--text-primary)"
+                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-background placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-300"
+              >
                 {t.auth.name}
               </label>
               <div className="mt-1">
@@ -89,13 +96,16 @@ export default function RegisterPage() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-(--bg) placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-(--text-primary)"
+                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-background placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-300"
+              >
                 {t.auth.email}
               </label>
               <div className="mt-1">
@@ -105,13 +115,16 @@ export default function RegisterPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-(--bg) placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-(--text-primary)"
+                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-background placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-foreground"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-300"
+              >
                 {t.auth.password}
               </label>
               <div className="mt-1">
@@ -121,7 +134,7 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-(--bg) placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-(--text-primary)"
+                  className="appearance-none block w-full px-3 py-2 border border-blue-900/40 rounded-md shadow-sm bg-background placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-foreground"
                 />
               </div>
             </div>
@@ -141,10 +154,10 @@ export default function RegisterPage() {
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-(--border)" />
+                <div className="w-full border-t border-border" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-(--bg-card) text-gray-400">
+                <span className="px-2 bg-card text-gray-400">
                   {t.auth.orWithGoogle}
                 </span>
               </div>

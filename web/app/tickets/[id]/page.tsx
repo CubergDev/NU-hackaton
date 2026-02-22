@@ -13,14 +13,13 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import type { BusinessUnit, TicketDetail, TicketRow } from "@/types";
-import { useI18n } from "../../../dictionaries/i18n";
 import {
   LangBadge,
-  PriorityBadge,
   SegmentBadge,
   SentimentBadge,
-} from "../../components/badges";
-import Map from "../../components/map";
+} from "../../../components/badges";
+import TicketMap from "../../../components/map";
+import { useI18n } from "../../../dictionaries/i18n";
 
 function calcAge(birthDate: string | null): string {
   if (!birthDate) return "—";
@@ -35,7 +34,7 @@ export default function TicketDetailPage() {
   const router = useRouter();
   const { t: tr } = useI18n();
   const { user } = useAuth();
-  
+
   const [data, setData] = useState<TicketDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -60,7 +59,10 @@ export default function TicketDetailPage() {
   // Load business units for the dropdown
   const [buList, setBuList] = useState<BusinessUnit[]>([]);
   useEffect(() => {
-    api.businessUnits.list().then(setBuList).catch(() => {});
+    api.businessUnits
+      .list()
+      .then(setBuList)
+      .catch(() => {});
   }, []);
 
   if (loading)
@@ -81,10 +83,11 @@ export default function TicketDetailPage() {
   if (error || !data)
     return (
       <div className="page" style={{ textAlign: "center", padding: "60px 0" }}>
-        <p style={{ color: "var(--text-muted)", fontSize: 16 }}>
+        <p style={{ color: "hsl(var(--muted-foreground))", fontSize: 16 }}>
           {error || "Загрузка..."}
         </p>
         <button
+          type="button"
           className="btn btn-secondary"
           onClick={() => router.push("/dashboard")}
           style={{ marginTop: 16 }}
@@ -113,7 +116,7 @@ export default function TicketDetailPage() {
         : priority <= 6
           ? "var(--warning)"
           : "var(--danger)"
-      : "var(--border)";
+      : "hsl(var(--border))";
 
   const startEdit = () => {
     setEditData({
@@ -141,7 +144,7 @@ export default function TicketDetailPage() {
       const newData = await api.tickets.get(Number(id));
       setData(newData);
       setIsEditing(false);
-    } catch (e) {
+    } catch (_e) {
       alert("Failed to save ticket");
     } finally {
       setSaving(false);
@@ -154,7 +157,7 @@ export default function TicketDetailPage() {
     try {
       await api.tickets.delete(Number(id));
       router.push("/dashboard");
-    } catch (e) {
+    } catch (_e) {
       alert("Failed to delete ticket");
       setIsDeleting(false);
     }
@@ -163,9 +166,17 @@ export default function TicketDetailPage() {
   return (
     <div className="page">
       {/* Back button + header */}
-      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+      <div
+        className="page-header"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
         <div>
           <button
+            type="button"
             className="btn btn-secondary btn-sm"
             onClick={() => router.push("/dashboard")}
             style={{ marginBottom: 12 }}
@@ -182,23 +193,41 @@ export default function TicketDetailPage() {
               alignItems: "center",
             }}
           >
-            <span className="badge" style={{ background: "var(--bg-card)", border: "1px solid var(--border)", color: "white" }}>
+            <span
+              className="badge"
+              style={{
+                background: "hsl(var(--card))",
+                border: "1px solid hsl(var(--border))",
+                color: "white",
+              }}
+            >
               {t.status || "Новый"}
             </span>
             <SegmentBadge segment={t.segment} />
             <LangBadge lang={a?.language ?? null} />
-            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
+            <span
+              style={{ color: "hsl(var(--muted-foreground))", fontSize: 13 }}
+            >
               {t.createdAt ? new Date(t.createdAt).toLocaleString("ru-RU") : ""}
             </span>
           </p>
         </div>
         {canManageStatus && !isEditing && (
           <div style={{ display: "flex", gap: 8 }}>
-            <button className="btn btn-secondary btn-sm" onClick={startEdit}>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={startEdit}
+            >
               Редактировать
             </button>
             {canFullEdit && (
-              <button className="btn btn-danger btn-sm" onClick={handleDelete} disabled={isDeleting}>
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
                 Удалить
               </button>
             )}
@@ -215,11 +244,19 @@ export default function TicketDetailPage() {
             {canManageStatus && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Статус</label>
+                  <label
+                    htmlFor="edit-status"
+                    className="block text-sm font-medium text-gray-300 mb-1"
+                  >
+                    Статус
+                  </label>
                   <select
+                    id="edit-status"
                     value={editData.status as string}
-                    onChange={(e) => setEditData({ ...editData, status: e.target.value })}
-                    className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)"
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
+                    className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
                   >
                     <option value="Новый">Новый</option>
                     <option value="В работе">В работе</option>
@@ -228,53 +265,101 @@ export default function TicketDetailPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Заметки менеджера</label>
+                  <label
+                    htmlFor="edit-notes"
+                    className="block text-sm font-medium text-gray-300 mb-1"
+                  >
+                    Заметки менеджера
+                  </label>
                   <textarea
+                    id="edit-notes"
                     rows={3}
                     value={editData.notes as string}
-                    onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
-                    className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary) whitespace-pre-wrap"
+                    onChange={(e) =>
+                      setEditData({ ...editData, notes: e.target.value })
+                    }
+                    className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground whitespace-pre-wrap"
                   />
                 </div>
               </>
             )}
-            
+
             {canFullEdit && (
               <>
-                <div className="border-t border-(--border) pt-4 mt-2">
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Описание обращения</label>
+                <div className="border-t border-border pt-4 mt-2">
+                  <label
+                    htmlFor="edit-desc"
+                    className="block text-sm font-medium text-gray-300 mb-1"
+                  >
+                    Описание обращения
+                  </label>
                   <textarea
+                    id="edit-desc"
                     rows={4}
                     value={editData.description as string}
-                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                    className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary) whitespace-pre-wrap"
+                    onChange={(e) =>
+                      setEditData({ ...editData, description: e.target.value })
+                    }
+                    className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground whitespace-pre-wrap"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Сегмент</label>
+                    <label
+                      htmlFor="edit-segment"
+                      className="block text-sm font-medium text-gray-300 mb-1"
+                    >
+                      Сегмент
+                    </label>
                     <input
+                      id="edit-segment"
                       type="text"
                       value={editData.segment as string}
-                      onChange={(e) => setEditData({ ...editData, segment: e.target.value })}
-                      className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)"
+                      onChange={(e) =>
+                        setEditData({ ...editData, segment: e.target.value })
+                      }
+                      className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Источник</label>
+                    <label
+                      htmlFor="edit-source"
+                      className="block text-sm font-medium text-gray-300 mb-1"
+                    >
+                      Источник
+                    </label>
                     <input
+                      id="edit-source"
                       type="text"
                       value={editData.source as string}
-                      onChange={(e) => setEditData({ ...editData, source: e.target.value })}
-                      className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)"
+                      onChange={(e) =>
+                        setEditData({ ...editData, source: e.target.value })
+                      }
+                      className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
                     />
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Офис (Business Unit)</label>
+                    <label
+                      htmlFor="edit-office"
+                      className="block text-sm font-medium text-gray-300 mb-1"
+                    >
+                      Офис (Business Unit)
+                    </label>
                     <select
-                      value={(editData as any).businessUnitId ?? ""}
-                      onChange={(e) => setEditData({ ...editData, businessUnitId: e.target.value ? Number(e.target.value) : null } as any)}
-                      className="block w-full px-3 py-2 bg-(--bg) border border-(--border) rounded-md text-(--text-primary)"
+                      id="edit-office"
+                      value={
+                        ((editData as Record<string, unknown>)
+                          .businessUnitId as string) ?? ""
+                      }
+                      onChange={(e) =>
+                        setEditData((prev) => ({
+                          ...prev,
+                          businessUnitId: e.target.value
+                            ? Number(e.target.value)
+                            : null,
+                        }))
+                      }
+                      className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
                     >
                       <option value="">— Не выбрано —</option>
                       {buList.map((bu) => (
@@ -289,10 +374,20 @@ export default function TicketDetailPage() {
             )}
 
             <div className="flex gap-4 mt-6">
-              <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleSave}
+                disabled={saving}
+              >
                 {saving ? "Сохранение..." : "Сохранить"}
               </button>
-              <button className="btn btn-secondary" onClick={() => setIsEditing(false)} disabled={saving}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setIsEditing(false)}
+                disabled={saving}
+              >
                 Отмена
               </button>
             </div>
@@ -319,7 +414,7 @@ export default function TicketDetailPage() {
                   margin: 0,
                   fontSize: 14,
                   lineHeight: 1.7,
-                  color: "var(--text-primary)",
+                  color: "hsl(var(--foreground))",
                   whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
                 }}
@@ -327,11 +422,32 @@ export default function TicketDetailPage() {
                 {t.description || "—"}
               </p>
               {t.notes && (
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--border)" }}>
-                  <h4 style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
+                <div
+                  style={{
+                    marginTop: 16,
+                    paddingTop: 16,
+                    borderTop: "1px solid hsl(var(--border))",
+                  }}
+                >
+                  <h4
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "hsl(var(--muted-foreground))",
+                      textTransform: "uppercase",
+                      marginBottom: 8,
+                    }}
+                  >
                     Заметки менеджера
                   </h4>
-                  <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", whiteSpace: "pre-wrap" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: 13,
+                      color: "hsl(var(--secondary-foreground))",
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
                     {t.notes}
                   </p>
                 </div>
@@ -361,9 +477,7 @@ export default function TicketDetailPage() {
               {bu && (
                 <>
                   <Row label="Офис">{bu.office ?? "—"}</Row>
-                  <Row label={tr.ticketDetail.address}>
-                    {bu.address ?? "—"}
-                  </Row>
+                  <Row label={tr.ticketDetail.address}>{bu.address ?? "—"}</Row>
                 </>
               )}
               {mapLat != null && mapLng != null && (
@@ -373,14 +487,14 @@ export default function TicketDetailPage() {
                       style={{
                         fontFamily: "monospace",
                         fontSize: 12,
-                        color: "var(--text-muted)",
+                        color: "hsl(var(--muted-foreground))",
                       }}
                     >
                       {mapLat.toFixed(4)}, {mapLng.toFixed(4)}
                     </span>
                   </Row>
                   <div style={{ marginTop: 12 }}>
-                    <Map center={[mapLat, mapLng]} />
+                    <TicketMap center={[mapLat, mapLng]} />
                   </div>
                 </>
               )}
@@ -423,7 +537,7 @@ export default function TicketDetailPage() {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "var(--text-muted)",
+                    color: "hsl(var(--muted-foreground))",
                     textTransform: "uppercase",
                     marginBottom: 4,
                   }}
@@ -442,7 +556,7 @@ export default function TicketDetailPage() {
                   style={{
                     fontSize: 12,
                     fontWeight: 600,
-                    color: "var(--text-muted)",
+                    color: "hsl(var(--muted-foreground))",
                     textTransform: "uppercase",
                     marginBottom: 6,
                   }}
@@ -480,11 +594,11 @@ export default function TicketDetailPage() {
                   margin: 0,
                   fontSize: 13,
                   lineHeight: 1.7,
-                  color: "var(--text-secondary)",
+                  color: "hsl(var(--secondary-foreground))",
                 }}
               >
                 {a?.summary || (
-                  <span style={{ color: "var(--text-muted)" }}>
+                  <span style={{ color: "hsl(var(--muted-foreground))" }}>
                     {tr.ticketDetail.notGenerated}
                   </span>
                 )}
@@ -561,12 +675,17 @@ export default function TicketDetailPage() {
                       style={{
                         fontSize: 20,
                         fontWeight: 700,
-                        color: "var(--text-primary)",
+                        color: "hsl(var(--foreground))",
                       }}
                     >
                       {m.name}
                     </div>
-                    <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        color: "hsl(var(--muted-foreground))",
+                      }}
+                    >
                       {m.position}
                     </div>
                   </div>
@@ -584,7 +703,7 @@ export default function TicketDetailPage() {
                         style={{
                           fontSize: 12,
                           fontWeight: 600,
-                          color: "var(--text-muted)",
+                          color: "hsl(var(--muted-foreground))",
                           textTransform: "uppercase",
                           marginBottom: 6,
                         }}
@@ -624,7 +743,7 @@ export default function TicketDetailPage() {
               ) : (
                 <p
                   style={{
-                    color: "var(--text-muted)",
+                    color: "hsl(var(--muted-foreground))",
                     fontSize: 13,
                     textAlign: "center",
                     padding: "20px 0",
@@ -673,7 +792,7 @@ function Row({
         style={{
           fontSize: 12,
           fontWeight: 600,
-          color: "var(--text-muted)",
+          color: "hsl(var(--muted-foreground))",
           textTransform: "uppercase",
           flexShrink: 0,
         }}

@@ -104,7 +104,7 @@ export default function StatsPage() {
           style={{
             textAlign: "center",
             padding: "60px 0",
-            color: "var(--text-muted)",
+            color: "hsl(var(--muted-foreground))",
           }}
         >
           {tr.dashboard.pressProcess}
@@ -159,12 +159,15 @@ export default function StatsPage() {
                     }
                     labelLine={false}
                   >
-                    {stats.bySegment.map((s, i) => (
-                      <Cell
-                        key={i}
-                        fill={SEG_COLORS[s.name] ?? COLORS[i % COLORS.length]}
-                      />
-                    ))}
+                    {stats.bySegment.map((s, i) => {
+                      // biome-ignore lint/suspicious/noArrayIndexKey: Order is stable
+                      return (
+                        <Cell
+                          key={s.name || `segment-${i}`}
+                          fill={SEG_COLORS[s.name] ?? COLORS[i % COLORS.length]}
+                        />
+                      );
+                    })}
                   </Pie>
                   <Tooltip
                     formatter={(v) => [v, tr.ticketDetail.ticketsSuffix]}
@@ -231,7 +234,7 @@ export default function StatsPage() {
                         <div
                           style={{
                             background: "#fff",
-                            border: "1px solid var(--border)",
+                            border: "1px solid hsl(var(--border))",
                             borderRadius: 8,
                             padding: "8px 12px",
                             fontSize: 13,
@@ -240,7 +243,12 @@ export default function StatsPage() {
                           <p style={{ fontWeight: 600, margin: "0 0 4px" }}>
                             {d.name}
                           </p>
-                          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+                          <p
+                            style={{
+                              margin: 0,
+                              color: "hsl(var(--muted-foreground))",
+                            }}
+                          >
                             {d.office} • {d.position}
                           </p>
                           <p

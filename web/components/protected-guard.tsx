@@ -1,8 +1,8 @@
 "use client";
 
-import { useAuth } from "../../lib/auth-context";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAuth } from "../lib/auth-context";
 
 export function ProtectedGuard({
   children,
@@ -27,7 +27,11 @@ export function ProtectedGuard({
   }, [user, loading, router, pathname, requireAdmin]);
 
   if (loading) {
-    return <div className="p-8 flex items-center justify-center h-full">Loading...</div>;
+    return (
+      <div className="p-8 flex items-center justify-center h-full">
+        Loading...
+      </div>
+    );
   }
 
   if (!user || (requireAdmin && user.role !== "ADMIN")) {
