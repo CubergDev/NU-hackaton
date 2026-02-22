@@ -190,7 +190,7 @@ export async function handleTicketAnalysis(
     analysis = {
       ticketType: "Консультация",
       sentiment: "Нейтральный",
-      priority: 2,
+      priority: 4,
       language: "RU",
       summary: unified.text.slice(0, 200),
       recommendation: "Требуется ручная проверка (LLM недоступен)",

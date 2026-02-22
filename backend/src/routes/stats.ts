@@ -36,7 +36,7 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
     `);
 
     const byType = await db.execute(sql`
-      SELECT ta.ticket_type AS name, COUNT(*) AS count
+      SELECT ta.ticket_type AS name, COUNT(DISTINCT t.id)::int AS count
       FROM ticket_analysis ta
       JOIN tickets t ON t.id = ta.ticket_id
       LEFT JOIN assignments a ON a.ticket_id = t.id
@@ -46,7 +46,7 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
     `);
 
     const bySentiment = await db.execute(sql`
-      SELECT ta.sentiment AS name, COUNT(*) AS count
+      SELECT ta.sentiment AS name, COUNT(DISTINCT t.id)::int AS count
       FROM ticket_analysis ta
       JOIN tickets t ON t.id = ta.ticket_id
       LEFT JOIN assignments a ON a.ticket_id = t.id
@@ -56,7 +56,7 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
     `);
 
     const byOffice = await db.execute(sql`
-      SELECT m.office AS name, COUNT(*) AS count
+      SELECT m.office AS name, COUNT(DISTINCT a.ticket_id)::int AS count
       FROM assignments a
       JOIN managers m ON m.id = a.manager_id
       WHERE m.company_id = ${companyId}
@@ -65,7 +65,7 @@ export const statsRoutes = new Elysia({ prefix: "/stats" }).get(
     `);
 
     const bySegment = await db.execute(sql`
-      SELECT t.segment AS name, COUNT(*) AS count
+      SELECT t.segment AS name, COUNT(DISTINCT t.id)::int AS count
       FROM tickets t
       LEFT JOIN assignments a ON a.ticket_id = t.id
       WHERE t.company_id = ${companyId}

@@ -28,7 +28,7 @@ export function PriorityBadge({ priority }: { priority: number | null }) {
   const cls =
     priority <= 3
       ? "priority-low"
-      : priority <= 6
+      : priority <= 7
         ? "priority-medium"
         : "priority-high";
   return <span className={`priority-dot ${cls}`}>{priority}</span>;

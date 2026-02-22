@@ -124,7 +124,7 @@ export default function TicketDetailPage() {
     priority != null
       ? priority <= 3
         ? "var(--success)"
-        : priority <= 6
+        : priority <= 7
           ? "var(--warning)"
           : "var(--danger)"
       : "hsl(var(--border))";

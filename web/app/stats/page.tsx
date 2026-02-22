@@ -156,7 +156,7 @@ export default function StatsPage() {
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie
-                    data={stats.bySegment}
+                    data={stats.bySegment.map((s) => ({ ...s, count: Number(s.count) }))}
                     dataKey="count"
                     nameKey="name"
                     cx="50%"
