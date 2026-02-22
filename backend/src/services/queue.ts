@@ -48,10 +48,7 @@ type JobHandler = (ticket: UnifiedTicket) => Promise<void>;
 
 let workersRunning = false;
 
-export function startWorkers(
-  concurrency: number,
-  handler: JobHandler,
-): void {
+export function startWorkers(concurrency: number, handler: JobHandler): void {
   if (workersRunning) {
     console.warn("[Queue] Workers already running, skipping duplicate start");
     return;

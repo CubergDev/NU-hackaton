@@ -9,19 +9,17 @@
  *  5. Invalidate stats cache
  */
 
-import { eq, and, isNull } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../db";
-import { tickets, ticketAnalysis } from "../db/schema";
+import { ticketAnalysis, tickets } from "../db/schema";
 import { config } from "../lib/config";
 import { prompts } from "../lib/prompts";
-import { geocodeAddress } from "../services/geo";
 import { assignTicket } from "../services/assignment";
+import { geocodeAddress } from "../services/geo";
+import type { ImageAttachment, UnifiedTicket } from "../services/normalize";
 import { invalidateStatsCache } from "../services/redis";
-import type { UnifiedTicket, ImageAttachment } from "../services/normalize";
 
 // ─── LLM Analysis ─────────────────────────────────────────────────────────────
-
-
 
 interface LlmAnalysisResult {
   ticketType: string;
@@ -45,9 +43,7 @@ function buildUserContent(
     return text;
   }
 
-  const parts: Array<Record<string, unknown>> = [
-    { type: "text", text },
-  ];
+  const parts: Array<Record<string, unknown>> = [{ type: "text", text }];
 
   for (const img of images) {
     if (img.type === "url") {
@@ -109,9 +105,11 @@ export async function handleTicketAnalysis(
   unified: UnifiedTicket,
 ): Promise<void> {
   const startTime = Date.now();
-  const ticketGuid = unified.guid || unified.meta.guid as string || "unknown";
+  const ticketGuid = unified.guid || (unified.meta.guid as string) || "unknown";
 
-  console.log(`[Analysis] Processing ticket "${ticketGuid}" (source: ${unified.source})`);
+  console.log(
+    `[Analysis] Processing ticket "${ticketGuid}" (source: ${unified.source})`,
+  );
 
   // 1. Check if ticket already exists in DB (for CSV/JSON imports it was pre-inserted)
   let ticketId: number;
@@ -139,7 +137,9 @@ export async function handleTicketAnalysis(
         .limit(1);
 
       if (existingAnalysis) {
-        console.log(`[Analysis] Ticket "${ticketGuid}" already analyzed, skipping`);
+        console.log(
+          `[Analysis] Ticket "${ticketGuid}" already analyzed, skipping`,
+        );
         return;
       }
     } else {
@@ -152,6 +152,7 @@ export async function handleTicketAnalysis(
           gender: unified.gender || null,
           birthDate: unified.birthDate || null,
           segment: unified.segment || null,
+          contact: unified.contact || null,
           description: unified.text,
           source: unified.source,
         })
@@ -169,6 +170,7 @@ export async function handleTicketAnalysis(
         gender: unified.gender || null,
         birthDate: unified.birthDate || null,
         segment: unified.segment || null,
+        contact: unified.contact || null,
         description: unified.text,
         source: unified.source,
       })
@@ -232,12 +234,7 @@ export async function handleTicketAnalysis(
 
   // 5. Assignment
   try {
-    const assignment = await assignTicket(
-      ticketId,
-      analysisRow.id,
-      lat,
-      lon,
-    );
+    const assignment = await assignTicket(ticketId, analysisRow.id, lat, lon);
     console.log(
       `[Analysis] Ticket "${ticketGuid}" → ${assignment.managerName} (${assignment.office})`,
     );

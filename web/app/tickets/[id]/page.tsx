@@ -124,6 +124,7 @@ export default function TicketDetailPage() {
       notes: t.notes || "",
       description: t.description || "",
       segment: t.segment || "Mass",
+      contact: t.contact || "",
       source: t.source || "",
       businessUnitId: t.businessUnitId ?? null,
     } as any);
@@ -323,6 +324,23 @@ export default function TicketDetailPage() {
                   </div>
                   <div>
                     <label
+                      htmlFor="edit-contact"
+                      className="block text-sm font-medium text-gray-300 mb-1"
+                    >
+                      Контакт
+                    </label>
+                    <input
+                      id="edit-contact"
+                      type="text"
+                      value={editData.contact as string}
+                      onChange={(e) =>
+                        setEditData({ ...editData, contact: e.target.value })
+                      }
+                      className="block w-full px-3 py-2 bg-background border border-border rounded-md text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label
                       htmlFor="edit-source"
                       className="block text-sm font-medium text-gray-300 mb-1"
                     >
@@ -472,6 +490,7 @@ export default function TicketDetailPage() {
               <Row label={tr.dashboard.tableSegment}>
                 <SegmentBadge segment={t.segment} />
               </Row>
+              <Row label="Контакт">{t.contact || "—"}</Row>
               <Row label={tr.ticketDetail.gender}>{t.gender ?? "—"}</Row>
               <Row label={tr.ticketDetail.age}>{calcAge(t.birthDate)}</Row>
               {bu && (

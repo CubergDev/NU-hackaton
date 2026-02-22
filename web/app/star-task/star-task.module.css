@@ -162,7 +162,7 @@
 .chip:hover {
   border-color: var(--primary);
   background: var(--primary);
-  color: #fff;
+  color: var(--primary-foreground);
 }
 
 /* Chat Layout */
@@ -251,7 +251,7 @@
 }
 .bubbleUser {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--primary-foreground);
   border-top-right-radius: 4px;
 }
 

@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <div className="bg-black min-h-screen text-gray-100 overflow-hidden font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-xl border-b border-white/[0.05] transition-all duration-300">
+      <nav className="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-xl border-b border-white/5 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer">
             <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(37,99,235,0.4)] group-hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all duration-300">
@@ -57,7 +57,10 @@ export default function Home() {
               <span className="relative z-10 text-white group-hover:drop-shadow-md">
                 {t.landing.startNow}
               </span>
-              <ChevronRight size={16} className="relative z-10 text-white group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight
+                size={16}
+                className="relative z-10 text-white group-hover:translate-x-0.5 transition-transform"
+              />
             </Link>
           </div>
         </div>
@@ -93,8 +96,13 @@ export default function Home() {
               href="/register"
               className="w-full sm:w-auto relative group px-10 py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 overflow-hidden bg-white text-black hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)] hover:shadow-[0_0_60px_rgba(255,255,255,0.3)]"
             >
-              <span className="relative z-10 text-lg">{t.landing.startNow}</span>
-              <ArrowRight size={20} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10 text-lg">
+                {t.landing.startNow}
+              </span>
+              <ArrowRight
+                size={20}
+                className="relative z-10 group-hover:translate-x-1 transition-transform"
+              />
             </Link>
             <Link
               href="/login"
@@ -108,15 +116,14 @@ export default function Home() {
         {/* Hero Visual Mockup */}
         <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 mt-28 md:mt-40 relative z-10">
           {/* Glass panel wrapper */}
-          <div className="relative rounded-[2rem] bg-linear-to-b from-white/[0.08] to-transparent p-[1px] shadow-2xl backdrop-blur-xl group hover:shadow-[0_20px_80px_rgba(37,99,235,0.15)] transition-all duration-700">
-            <div className="aspect-[16/10] md:aspect-video bg-black/60 rounded-[calc(2rem-1px)] overflow-hidden flex flex-col relative border border-white/5">
-              
+          <div className="relative rounded-4xl bg-linear-to-b from-white/8 to-transparent p-px shadow-2xl backdrop-blur-xl group hover:shadow-[0_20px_80px_rgba(37,99,235,0.15)] transition-all duration-700">
+            <div className="aspect-16/10 md:aspect-video bg-black/60 rounded-[calc(2rem-1px)] overflow-hidden flex flex-col relative border border-white/5">
               {/* Subtle grid pattern background */}
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay" />
-              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none" />
 
               {/* Mock Dashboard Top */}
-              <div className="h-12 border-b border-white/10 flex items-center px-6 gap-3 bg-white/[0.02]">
+              <div className="h-12 border-b border-white/10 flex items-center px-6 gap-3 bg-white/2">
                 <div className="flex gap-2">
                   <div className="w-3 h-3 rounded-full bg-red-500/80 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/80 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
@@ -127,30 +134,35 @@ export default function Home() {
                   <div className="h-2 w-16 bg-white/20 rounded-sm" />
                 </div>
               </div>
-              
+
               {/* Mock Content */}
               <div className="flex-1 flex p-6 gap-6 z-10">
                 {/* Sidebar */}
-                <div className="hidden sm:flex w-56 bg-white/[0.03] border border-white/5 rounded-xl flex-col p-4 gap-3">
+                <div className="hidden sm:flex w-56 bg-white/3 border border-white/5 rounded-xl flex-col p-4 gap-3">
                   <div className="h-4 w-24 bg-white/20 rounded-md mb-4" />
                   {Array.from({ length: 6 }).map((_, i) => (
                     <div
                       key={`skeleton-menu-${Math.random()}`}
-                      className="h-8 w-full bg-white/5 rounded-lg flex items-center px-3 gap-3 border border-white/[0.02]"
+                      className="h-8 w-full bg-white/5 rounded-lg flex items-center px-3 gap-3 border border-white/2"
                     >
                       <div className="w-4 h-4 rounded bg-white/10" />
-                      <div className={`h-2.5 bg-white/10 rounded`} style={{ width: `${Math.floor(Math.random() * 40) + 30}%` }} />
+                      <div
+                        className={`h-2.5 bg-white/10 rounded`}
+                        style={{
+                          width: `${Math.floor(Math.random() * 40) + 30}%`,
+                        }}
+                      />
                     </div>
                   ))}
                 </div>
-                
+
                 {/* Main Content Area */}
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Big Chart Card */}
                   <div className="col-span-1 md:col-span-2 bg-linear-to-br from-blue-600/10 to-indigo-900/10 border border-blue-500/20 rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden group/card text-left">
                     {/* Glow effect on hover */}
                     <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 blur-3xl" />
-                    
+
                     <div className="relative z-10 flex justify-between items-start">
                       <div>
                         <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center border border-blue-500/30 mb-4">
@@ -160,15 +172,22 @@ export default function Home() {
                         <div className="h-8 w-48 bg-white/90 rounded-md" />
                       </div>
                       <div className="flex gap-1.5 opacity-50">
-                        {Array.from({length: 8}).map((_, i) => (
-                           <div key={`bar-${Math.random()}`} className="w-2 bg-blue-500 rounded-t-sm" style={{height: `${Math.max(10, Math.random() * 60)}px`, marginTop: 'auto'}} />
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div
+                            key={`bar-${Math.random()}`}
+                            className="w-2 bg-blue-500 rounded-t-sm"
+                            style={{
+                              height: `${Math.max(10, Math.random() * 60)}px`,
+                              marginTop: "auto",
+                            }}
+                          />
                         ))}
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Small stat card */}
-                  <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 flex flex-col justify-center gap-4 relative overflow-hidden">
+                  <div className="bg-white/3 border border-white/10 rounded-2xl p-6 flex flex-col justify-center gap-4 relative overflow-hidden">
                     <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/20 blur-2xl rounded-full" />
                     <div className="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
                       <Activity size={24} />
@@ -178,30 +197,35 @@ export default function Home() {
                       <div className="h-6 w-3/4 bg-white/90 rounded-md" />
                     </div>
                   </div>
-                  
+
                   {/* Large bottom card (Activity list) */}
-                  <div className="col-span-1 md:col-span-3 h-40 bg-white/[0.03] border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
-                     <div className="h-3 w-32 bg-white/20 rounded-md mb-2" />
-                     {Array.from({length: 2}).map((_, i) => (
-                       <div key={`row-${Math.random()}`} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-                          <div className="flex gap-4 items-center">
-                            <div className="w-10 h-10 rounded-full bg-linear-to-tr from-green-500/20 to-emerald-500/20 flex items-center justify-center text-green-400 border border-green-500/20">
-                              <Users size={18} />
-                            </div>
-                            <div className="flex flex-col gap-2">
-                              <div className="h-2.5 w-32 bg-white/60 rounded" />
-                              <div className="h-2 w-20 bg-white/30 rounded" />
-                            </div>
+                  <div className="col-span-1 md:col-span-3 h-40 bg-white/3 border border-white/10 rounded-2xl p-6 flex flex-col gap-4">
+                    <div className="h-3 w-32 bg-white/20 rounded-md mb-2" />
+                    {Array.from({ length: 2 }).map((_, i) => (
+                      <div
+                        key={`row-${Math.random()}`}
+                        className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5"
+                      >
+                        <div className="flex gap-4 items-center">
+                          <div className="w-10 h-10 rounded-full bg-linear-to-tr from-green-500/20 to-emerald-500/20 flex items-center justify-center text-green-400 border border-green-500/20">
+                            <Users size={18} />
                           </div>
-                          <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-green-500" style={{width: `${Math.random() * 40 + 40}%`}} />
+                          <div className="flex flex-col gap-2">
+                            <div className="h-2.5 w-32 bg-white/60 rounded" />
+                            <div className="h-2 w-20 bg-white/30 rounded" />
                           </div>
-                       </div>
-                     ))}
+                        </div>
+                        <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-green-500"
+                            style={{ width: `${Math.random() * 40 + 40}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
-              
             </div>
           </div>
         </div>
@@ -217,48 +241,69 @@ export default function Home() {
               </span>
             </h2>
             <p className="text-xl text-gray-400">
-              Powerful tools designed to automate, scale, and secure your routing infrastructure seamlessly.
+              Powerful tools designed to automate, scale, and secure your
+              routing infrastructure seamlessly.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-colors group">
+            <div className="bg-white/2 border border-white/5 p-8 rounded-3xl hover:bg-white/4 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform">
                 <Network size={24} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Intelligent Routing</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Automatically distribute tickets to the right managers based on workload, segments, and language.</p>
+              <h3 className="text-xl font-bold mb-3 text-white">
+                Intelligent Routing
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Automatically distribute tickets to the right managers based on
+                workload, segments, and language.
+              </p>
             </div>
-            
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-colors group">
+
+            <div className="bg-white/2 border border-white/5 p-8 rounded-3xl hover:bg-white/4 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-6 group-hover:scale-110 transition-transform">
                 <Globe2 size={24} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Global Reach</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Multilingual support directly integrated, allowing cross-border support without translation bottlenecks.</p>
+              <h3 className="text-xl font-bold mb-3 text-white">
+                Global Reach
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Multilingual support directly integrated, allowing cross-border
+                support without translation bottlenecks.
+              </p>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-colors group">
+            <div className="bg-white/2 border border-white/5 p-8 rounded-3xl hover:bg-white/4 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400 mb-6 group-hover:scale-110 transition-transform">
                 <Lock size={24} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Enterprise Security</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">End-to-end data encryption, strict RBAC, and SLA monitoring ensure your data is always safe.</p>
+              <h3 className="text-xl font-bold mb-3 text-white">
+                Enterprise Security
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                End-to-end data encryption, strict RBAC, and SLA monitoring
+                ensure your data is always safe.
+              </p>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl hover:bg-white/[0.04] transition-colors group">
+            <div className="bg-white/2 border border-white/5 p-8 rounded-3xl hover:bg-white/4 transition-colors group">
               <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 mb-6 group-hover:scale-110 transition-transform">
                 <Activity size={24} />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-white">Real-time Analytics</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">Get granular insights into response times, manager efficiency, and ticket volumes with a custom dashboard.</p>
+              <h3 className="text-xl font-bold mb-3 text-white">
+                Real-time Analytics
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                Get granular insights into response times, manager efficiency,
+                and ticket volumes with a custom dashboard.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Core Features Overview (Original translated text) */}
-      <section className="py-24 md:py-32 bg-white/[0.01] border-y border-white/5 relative overflow-hidden">
+      <section className="py-24 md:py-32 bg-white/1 border-y border-white/5 relative overflow-hidden">
         {/* Decorative light beam */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-linear-to-r from-transparent via-blue-500 to-transparent opacity-50" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[300px] bg-blue-500/10 blur-[100px] pointer-events-none" />
@@ -270,7 +315,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="p-10 rounded-[2rem] bg-black/40 border border-white/10 hover:border-blue-500/50 transition-colors group relative overflow-hidden">
+            <div className="p-10 rounded-4xl bg-black/40 border border-white/10 hover:border-blue-500/50 transition-colors group relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-400 mb-8 border border-blue-500/20 group-hover:scale-110 group-hover:bg-blue-500 group-hover:text-white transition-all duration-300">
@@ -286,7 +331,7 @@ export default function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div className="p-10 rounded-[2rem] bg-black/40 border border-white/10 hover:border-purple-500/50 transition-colors group relative overflow-hidden">
+            <div className="p-10 rounded-4xl bg-black/40 border border-white/10 hover:border-purple-500/50 transition-colors group relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-br from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
                 <div className="w-16 h-16 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400 mb-8 border border-purple-500/20 group-hover:scale-110 group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">
@@ -302,10 +347,10 @@ export default function Home() {
             </div>
 
             {/* Feature 3 */}
-            <div className="p-10 rounded-[2rem] bg-black/40 border border-white/10 hover:border-green-500/50 transition-colors group relative overflow-hidden">
+            <div className="p-10 rounded-4xl bg-black/40 border border-white/10 hover:border-green-500/50 transition-colors group relative overflow-hidden">
               <div className="absolute inset-0 bg-linear-to-br from-green-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
-                 <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 mb-8 border border-green-500/20 group-hover:scale-110 group-hover:bg-green-500 group-hover:text-white transition-all duration-300">
+                <div className="w-16 h-16 bg-green-500/10 rounded-2xl flex items-center justify-center text-green-400 mb-8 border border-green-500/20 group-hover:scale-110 group-hover:bg-green-500 group-hover:text-white transition-all duration-300">
                   <MessageSquare size={32} />
                 </div>
                 <h3 className="text-2xl font-bold mb-4 text-white">
@@ -324,17 +369,35 @@ export default function Home() {
       <footer className="py-16 md:py-20 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-             <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
               <Flame size={24} className="text-blue-500" />
-              <span className="text-2xl font-black tracking-tighter text-white">FIRE</span>
+              <span className="text-2xl font-black tracking-tighter text-white">
+                FIRE
+              </span>
             </div>
             <p className="text-gray-500 text-sm font-medium">
-              © 2026 FIRE Intelligent Routing Engine. Designed for Hackathon Pro.
+              © 2026 FIRE Intelligent Routing Engine. Designed for Hackathon
+              Pro.
             </p>
             <div className="flex gap-6">
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Terms</a>
-              <a href="#" className="text-gray-500 hover:text-white transition-colors">Contact</a>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                Terms
+              </a>
+              <a
+                href="#"
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                Contact
+              </a>
             </div>
           </div>
         </div>

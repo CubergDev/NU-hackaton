@@ -1,4 +1,4 @@
-import { and, eq, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { db } from "../db";
 import {
@@ -32,6 +32,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
           id: tickets.id,
           guid: tickets.guid,
           segment: tickets.segment,
+          contact: tickets.contact,
           description: tickets.description,
           latitude: tickets.latitude,
           longitude: tickets.longitude,
@@ -76,7 +77,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
               : undefined,
             sentiment ? eq(ticketAnalysis.sentiment, sentiment) : undefined,
             language ? eq(ticketAnalysis.language, language) : undefined,
-            eq(tickets.companyId, companyId)
+            eq(tickets.companyId, companyId),
           ),
         )
         .limit(Number(limit))
@@ -110,8 +111,8 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
       .where(
         and(
           eq(tickets.id, Number(params.id)),
-          eq(tickets.companyId, (user as any).companyId)
-        )
+          eq(tickets.companyId, (user as any).companyId),
+        ),
       )
       .limit(1);
 
@@ -157,6 +158,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
           birthDate,
           gender,
           segment,
+          contact,
           businessUnitId,
           description,
           status,
@@ -172,6 +174,7 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
             birthDate,
             gender,
             segment,
+            contact,
             businessUnitId,
             description,
             status,
@@ -190,7 +193,9 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
           if (managerId === null) {
             // Unassign
             if (existingAssignment) {
-              await db.delete(assignments).where(eq(assignments.id, existingAssignment.id));
+              await db
+                .delete(assignments)
+                .where(eq(assignments.id, existingAssignment.id));
             }
           } else {
             if (existingAssignment) {
@@ -226,13 +231,14 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
         birthDate: t.Optional(t.String()),
         gender: t.Optional(t.String()),
         segment: t.Optional(t.String()),
+        contact: t.Optional(t.String()),
         businessUnitId: t.Optional(t.Union([t.Number(), t.Null()])),
         description: t.Optional(t.String()),
         status: t.Optional(t.String()),
         notes: t.Optional(t.String()),
         managerId: t.Optional(t.Union([t.Number(), t.Null()])),
       }),
-    }
+    },
   )
 
   // DELETE /tickets/:id
@@ -260,7 +266,9 @@ export const ticketsRoutes = new Elysia({ prefix: "/tickets" })
 
     // Delete cascading dependencies manually or by foreign key
     // We should delete analysis and assignments first
-    await db.delete(ticketAnalysis).where(eq(ticketAnalysis.ticketId, ticketId));
+    await db
+      .delete(ticketAnalysis)
+      .where(eq(ticketAnalysis.ticketId, ticketId));
     await db.delete(assignments).where(eq(assignments.ticketId, ticketId));
     await db.delete(tickets).where(eq(tickets.id, ticketId));
 

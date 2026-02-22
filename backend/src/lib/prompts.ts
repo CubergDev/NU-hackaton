@@ -1,5 +1,5 @@
-import { parse } from "smol-toml";
 import { resolve } from "node:path";
+import { parse } from "smol-toml";
 
 interface Prompts {
   star_task: {

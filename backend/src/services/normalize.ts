@@ -39,6 +39,7 @@ export interface UnifiedTicket {
   city?: string;
   street?: string;
   house?: string;
+  contact?: string;
 
   /** Image attachments (screenshots, photos from chat, etc.) */
   images?: ImageAttachment[];
@@ -59,6 +60,7 @@ export interface CsvRow {
   city?: string;
   street?: string;
   house?: string;
+  contact?: string;
 }
 
 export interface VoicePayload {
@@ -99,6 +101,7 @@ export function normalizeTicket(
       city: r.city,
       street: r.street,
       house: r.house,
+      contact: r.contact,
       meta: { guid: r.guid },
     };
   }

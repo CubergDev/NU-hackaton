@@ -131,6 +131,14 @@ export default function StatsPage() {
                     width={120}
                   />
                   <Tooltip
+                    cursor={{ fill: "var(--bg-hover)" }}
+                    contentStyle={{
+                      backgroundColor: "var(--bg-card)",
+                      borderColor: "var(--border)",
+                      color: "var(--text-primary)",
+                      borderRadius: "8px",
+                    }}
+                    itemStyle={{ color: "var(--text-primary)" }}
                     formatter={(v) => [v, tr.ticketDetail.ticketsSuffix]}
                   />
                   <Bar dataKey="count" fill="#2563EB" radius={[0, 4, 4, 0]} />
@@ -170,6 +178,13 @@ export default function StatsPage() {
                     })}
                   </Pie>
                   <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--bg-card)",
+                      borderColor: "var(--border)",
+                      color: "var(--text-primary)",
+                      borderRadius: "8px",
+                    }}
+                    itemStyle={{ color: "var(--text-primary)" }}
                     formatter={(v) => [v, tr.ticketDetail.ticketsSuffix]}
                   />
                   <Legend />
@@ -198,6 +213,14 @@ export default function StatsPage() {
                     width={100}
                   />
                   <Tooltip
+                    cursor={{ fill: "var(--bg-hover)" }}
+                    contentStyle={{
+                      backgroundColor: "var(--bg-card)",
+                      borderColor: "var(--border)",
+                      color: "var(--text-primary)",
+                      borderRadius: "8px",
+                    }}
+                    itemStyle={{ color: "var(--text-primary)" }}
                     formatter={(v) => [v, tr.ticketDetail.ticketsSuffix]}
                   />
                   <Bar dataKey="count" fill="#16A34A" radius={[0, 4, 4, 0]} />
@@ -226,6 +249,7 @@ export default function StatsPage() {
                     width={100}
                   />
                   <Tooltip
+                    cursor={{ fill: "var(--bg-hover)" }}
                     formatter={(v) => [v, tr.ticketDetail.ticketsSuffix]}
                     content={({ active, payload }) => {
                       if (!active || !payload?.length) return null;
@@ -233,11 +257,13 @@ export default function StatsPage() {
                       return (
                         <div
                           style={{
-                            background: "#fff",
-                            border: "1px solid hsl(var(--border))",
+                            background: "var(--bg-card)",
+                            color: "var(--text-primary)",
+                            border: "1px solid var(--border)",
                             borderRadius: 8,
                             padding: "8px 12px",
                             fontSize: 13,
+                            boxShadow: "var(--shadow-sm)",
                           }}
                         >
                           <p style={{ fontWeight: 600, margin: "0 0 4px" }}>
@@ -246,7 +272,7 @@ export default function StatsPage() {
                           <p
                             style={{
                               margin: 0,
-                              color: "hsl(var(--muted-foreground))",
+                              color: "var(--text-secondary)",
                             }}
                           >
                             {d.office} • {d.position}

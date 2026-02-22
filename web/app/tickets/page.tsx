@@ -138,6 +138,7 @@ export default function TicketsPage() {
               <tr>
                 <th>ID</th>
                 <th>Описание</th>
+                <th>Контакт</th>
                 <th>{t.dashboard.tableSegment}</th>
                 <th>{t.dashboard.tableType}</th>
                 <th>{t.dashboard.tablePriority}</th>
@@ -152,7 +153,7 @@ export default function TicketsPage() {
                 Array.from({ length: 8 }).map((_, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                   <tr key={i} style={{ cursor: "default" }}>
-                    {Array.from({ length: 9 }).map((_, j) => (
+                    {Array.from({ length: 10 }).map((_, j) => (
                       // biome-ignore lint/suspicious/noArrayIndexKey: Skeletons do not reorder
                       <td key={j}>
                         <div
@@ -166,7 +167,7 @@ export default function TicketsPage() {
               ) : tickets.length === 0 ? (
                 <tr style={{ cursor: "default" }}>
                   <td
-                    colSpan={9}
+                    colSpan={10}
                     style={{
                       textAlign: "center",
                       padding: "40px 0",
@@ -201,6 +202,9 @@ export default function TicketsPage() {
                       }}
                     >
                       {t.description?.slice(0, 60) || "—"}
+                    </td>
+                    <td style={{ fontSize: 13, whiteSpace: "nowrap" }}>
+                      {t.contact ?? "—"}
                     </td>
                     <td>
                       <SegmentBadge segment={t.segment} />

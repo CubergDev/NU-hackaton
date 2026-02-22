@@ -1,6 +1,6 @@
+import * as bcrypt from "bcryptjs";
 import { and, asc, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
-import * as bcrypt from "bcryptjs";
 import { db } from "../db";
 import { assignments, managers, users } from "../db/schema";
 
@@ -48,10 +48,7 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
         .update(managers)
         .set(updateData)
         .where(
-          and(
-            eq(managers.id, managerId),
-            eq(managers.companyId, companyId)
-          )
+          and(eq(managers.id, managerId), eq(managers.companyId, companyId)),
         )
         .returning();
 
@@ -64,9 +61,13 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
       if (updated.userId) {
         const userUpdate: Record<string, any> = {};
         if (body.role) userUpdate.role = body.role;
-        if (body.newPassword) userUpdate.passwordHash = await bcrypt.hash(body.newPassword, 10);
+        if (body.newPassword)
+          userUpdate.passwordHash = await bcrypt.hash(body.newPassword, 10);
         if (Object.keys(userUpdate).length > 0) {
-          await db.update(users).set(userUpdate).where(eq(users.id, updated.userId));
+          await db
+            .update(users)
+            .set(userUpdate)
+            .where(eq(users.id, updated.userId));
         }
       }
 
@@ -81,7 +82,7 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
         role: t.Optional(t.String()),
         newPassword: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // DELETE /managers/:id — delete a manager and optionally linked user
@@ -94,10 +95,7 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
       .select()
       .from(managers)
       .where(
-        and(
-          eq(managers.id, managerId),
-          eq(managers.companyId, companyId)
-        )
+        and(eq(managers.id, managerId), eq(managers.companyId, companyId)),
       );
 
     if (!manager) {
@@ -106,20 +104,14 @@ export const managersRoutes = new Elysia({ prefix: "/managers" })
     }
 
     // Remove assignments referencing this manager
-    await db
-      .delete(assignments)
-      .where(eq(assignments.managerId, managerId));
+    await db.delete(assignments).where(eq(assignments.managerId, managerId));
 
     // Delete the manager
-    await db
-      .delete(managers)
-      .where(eq(managers.id, managerId));
+    await db.delete(managers).where(eq(managers.id, managerId));
 
     // Delete linked user if exists
     if (manager.userId) {
-      await db
-        .delete(users)
-        .where(eq(users.id, manager.userId));
+      await db.delete(users).where(eq(users.id, manager.userId));
     }
 
     return { success: true };

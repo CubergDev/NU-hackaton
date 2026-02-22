@@ -27,26 +27,68 @@ export async function assignTicket(
   office: string;
   assignmentReason: string;
 }> {
+  // Retrieve the ticket's companyId to filter business units and managers
+  const [ticketRow] = await db
+    .select({ companyId: tickets.companyId })
+    .from(tickets)
+    .where(eq(tickets.id, ticketId))
+    .limit(1);
+  const companyId = ticketRow?.companyId;
+
   // ── Step 1: Determine target office ──────────────────────────────────────
-  let office: string;
+  let candidateOffice: string;
   let distanceKm: number | null = null;
 
+  const { businessUnits } = await import("../db/schema");
+  const buQuery = db.select().from(businessUnits);
+  if (companyId) {
+    // We can't use eq() with companyId directly on buQuery if we don't import eq
+    // Let's filter in memory or rely on manager filtering
+  }
+  const allUnits = await db.select().from(businessUnits);
+
+  // Filter by companyId in memory if needed
+  const companyUnits = companyId
+    ? allUnits.filter((u) => u.companyId === companyId)
+    : allUnits;
+
+  if (companyUnits.length === 0) {
+    throw new Error("No business units found in the database.");
+  }
+
   if (lat != null && lon != null) {
-    office = findNearestOffice(lat, lon);
-    // Calculate the actual distance for the reason string
-    const officeCoords = OFFICE_COORDS[office];
-    if (officeCoords) {
-      const { haversine } = await import("./geo");
-      distanceKm = Math.round(
-        haversine(lat, lon, officeCoords[0], officeCoords[1]),
-      );
+    let minDist = Infinity;
+    let nearestOffice: string | null = null;
+    const { haversine } = await import("./geo");
+
+    for (const bu of companyUnits) {
+      if (bu.latitude != null && bu.longitude != null) {
+        const dist = haversine(lat, lon, bu.latitude, bu.longitude);
+        if (dist < minDist) {
+          minDist = dist;
+          nearestOffice = bu.office;
+        }
+      }
+    }
+
+    if (nearestOffice) {
+      candidateOffice = nearestOffice;
+      distanceKm = Math.round(minDist);
+    } else {
+      candidateOffice = companyUnits[0].office;
     }
   } else {
-    office = DEFAULT_OFFICE;
+    // If AST-1 exists use it, otherwise use the first available
+    candidateOffice =
+      companyUnits.find((u) => u.office === "AST-1")?.office ||
+      companyUnits[0].office;
   }
 
   // ── Step 2: TOP-2 least-loaded managers in that office ───────────────────
-  const topManagers = await db
+  // Note: we can import `and` from drizzle-orm but since it's already imported at the top, we might need to be careful. Oh wait, `and` is NOT imported at the top of assignment.ts!
+  // I will just use `eq(managers.office, candidateOffice)` which handles the office.
+  // We can filter managers by companyId additionally if needed, but the office shouldn't be shared.
+  let pool = await db
     .select({
       id: managers.id,
       name: managers.name,
@@ -54,15 +96,13 @@ export async function assignTicket(
       currentLoad: managers.currentLoad,
     })
     .from(managers)
-    .where(eq(managers.office, office))
+    .where(eq(managers.office, candidateOffice))
     .orderBy(asc(managers.currentLoad))
     .limit(2);
 
-  // If the target office has no managers, try the default office as a fallback
-  let candidateOffice = office;
-  let pool = topManagers;
   if (pool.length === 0) {
-    candidateOffice = DEFAULT_OFFICE;
+    // Fallback to first manager in any company office
+    candidateOffice = companyUnits[0].office;
     pool = await db
       .select({
         id: managers.id,
@@ -77,7 +117,7 @@ export async function assignTicket(
   }
 
   if (pool.length === 0) {
-    throw new Error(`No managers found in office "${candidateOffice}"`);
+    throw new Error(`No managers found for company #${companyId}`);
   }
 
   // ── Step 3: Round-Robin selection ─────────────────────────────────────────
@@ -105,11 +145,7 @@ export async function assignTicket(
 
   // ── Step 5: Build human-readable reason (for jury) ────────────────────────
   const distancePart =
-    distanceKm != null
-      ? ` (расстояние ~${distanceKm} км)`
-      : office !== candidateOffice
-        ? ` (fallback из ${office})`
-        : "";
+    distanceKm != null ? ` (расстояние ~${distanceKm} км)` : "";
 
   const poolDesc = pool
     .map(

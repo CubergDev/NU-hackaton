@@ -12,7 +12,7 @@ export interface AddressSuggestion {
 export async function searchAddress(
   query: string,
   limit = 5,
-  city?: string
+  city?: string,
 ): Promise<AddressSuggestion[]> {
   if (!TWOGIS_KEY) {
     console.error("TWOGIS_API_KEY not set");
@@ -53,7 +53,7 @@ export async function searchAddress(
  * 2GIS Geocoder — get coordinates for an address.
  */
 export async function geocodeAddress(
-  address: string
+  address: string,
 ): Promise<{ latitude: number; longitude: number } | null> {
   if (!TWOGIS_KEY) {
     console.error("TWOGIS_API_KEY not set");

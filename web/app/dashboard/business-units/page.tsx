@@ -381,87 +381,91 @@ export default function BusinessUnitsPage() {
               className="data-table"
               style={{ width: "100%", borderCollapse: "collapse" }}
             >
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: "10px 12px" }}>
-                  Офис
-                </th>
-                <th style={{ textAlign: "left", padding: "10px 12px" }}>
-                  Адрес
-                </th>
-                <th style={{ textAlign: "center", padding: "10px 12px" }}>
-                  Координаты
-                </th>
-                <th style={{ textAlign: "right", padding: "10px 12px" }}>
-                  Действия
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {units.map((bu) => (
-                <tr
-                  key={bu.id}
-                  style={{ borderTop: "1px solid hsl(var(--border))" }}
-                >
-                  <td style={{ padding: "12px", fontWeight: 600 }}>
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 6 }}
-                    >
-                      <MapPin size={14} style={{ color: "var(--primary)" }} />
-                      {bu.office}
-                    </span>
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px",
-                      color: "hsl(var(--secondary-foreground))",
-                      fontSize: 13,
-                    }}
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left", padding: "10px 12px" }}>
+                    Офис
+                  </th>
+                  <th style={{ textAlign: "left", padding: "10px 12px" }}>
+                    Адрес
+                  </th>
+                  <th style={{ textAlign: "center", padding: "10px 12px" }}>
+                    Координаты
+                  </th>
+                  <th style={{ textAlign: "right", padding: "10px 12px" }}>
+                    Действия
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {units.map((bu) => (
+                  <tr
+                    key={bu.id}
+                    style={{ borderTop: "1px solid hsl(var(--border))" }}
                   >
-                    {bu.address || "—"}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px",
-                      textAlign: "center",
-                      fontFamily: "monospace",
-                      fontSize: 12,
-                      color: "hsl(var(--muted-foreground))",
-                    }}
-                  >
-                    {bu.latitude != null && bu.longitude != null
-                      ? `${bu.latitude.toFixed(4)}, ${bu.longitude.toFixed(4)}`
-                      : "—"}
-                  </td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
-                    <div
+                    <td style={{ padding: "12px", fontWeight: 600 }}>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <MapPin size={14} style={{ color: "var(--primary)" }} />
+                        {bu.office}
+                      </span>
+                    </td>
+                    <td
                       style={{
-                        display: "flex",
-                        gap: 6,
-                        justifyContent: "flex-end",
+                        padding: "12px",
+                        color: "hsl(var(--secondary-foreground))",
+                        fontSize: 13,
                       }}
                     >
-                      <button
-                        type="button"
-                        className="btn btn-secondary btn-sm"
-                        onClick={() => openEdit(bu)}
-                        title="Редактировать"
+                      {bu.address || "—"}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px",
+                        textAlign: "center",
+                        fontFamily: "monospace",
+                        fontSize: 12,
+                        color: "hsl(var(--muted-foreground))",
+                      }}
+                    >
+                      {bu.latitude != null && bu.longitude != null
+                        ? `${bu.latitude.toFixed(4)}, ${bu.longitude.toFixed(4)}`
+                        : "—"}
+                    </td>
+                    <td style={{ padding: "12px", textAlign: "right" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 6,
+                          justifyContent: "flex-end",
+                        }}
                       >
-                        <Pencil size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDelete(bu.id)}
-                        title="Удалить"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openEdit(bu)}
+                          title="Редактировать"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDelete(bu.id)}
+                          title="Удалить"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </div>

@@ -18,7 +18,7 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         q: t.String(),
         city: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // GET /business-units — list all for the current company
@@ -61,7 +61,7 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         office: t.String(),
         address: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // PUT /business-units/:id — update a business unit (re-geocodes if address changed)
@@ -98,8 +98,8 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         .where(
           and(
             eq(businessUnits.id, Number(params.id)),
-            eq(businessUnits.companyId, companyId)
-          )
+            eq(businessUnits.companyId, companyId),
+          ),
         )
         .returning();
 
@@ -115,7 +115,7 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
         office: t.Optional(t.String()),
         address: t.Optional(t.String()),
       }),
-    }
+    },
   )
 
   // DELETE /business-units/:id — delete a business unit
@@ -133,8 +133,8 @@ export const businessUnitsRoutes = new Elysia({ prefix: "/business-units" })
       .where(
         and(
           eq(businessUnits.id, businessUnitId),
-          eq(businessUnits.companyId, companyId)
-        )
+          eq(businessUnits.companyId, companyId),
+        ),
       )
       .returning();
 

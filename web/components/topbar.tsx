@@ -68,8 +68,8 @@ export function Topbar() {
             background: "transparent",
             border: "1px solid hsl(var(--border))",
             borderRadius: 6,
-            padding: "4px 8px",
-            fontSize: 13,
+            padding: "2px 4px",
+            fontSize: 12,
             color: "hsl(var(--secondary-foreground))",
             outline: "none",
             cursor: "pointer",
@@ -103,7 +103,7 @@ export function Topbar() {
               className="topbar-avatar"
               style={{
                 borderLeft: "1px solid hsl(var(--border))",
-                paddingLeft: "12px",
+                paddingLeft: "8px",
               }}
             >
               <div
@@ -124,7 +124,7 @@ export function Topbar() {
             <button
               type="button"
               onClick={() => logout()}
-              className="ml-2 flex items-center justify-center w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors shrink-0"
+              className="ml-1 flex items-center justify-center w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors shrink-0"
               title={t.auth.logOut as string}
             >
               <LogOut size={18} />

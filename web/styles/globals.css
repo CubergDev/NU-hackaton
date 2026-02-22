@@ -254,6 +254,12 @@ body {
   padding: 0 16px;
   height: 56px;
 }
+@media (max-width: 639px) {
+  .topbar {
+    padding: 0 8px;
+    gap: 8px;
+  }
+}
 .topbar-menu-btn {
   display: flex;
   align-items: center;
@@ -301,6 +307,11 @@ body {
   padding: 1px 6px;
   margin-left: 4px;
 }
+@media (max-width: 479px) {
+  .topbar-demo {
+    display: none;
+  }
+}
 
 .topbar-search {
   flex: 1;
@@ -336,6 +347,11 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+@media (max-width: 639px) {
+  .topbar-right {
+    gap: 4px;
+  }
 }
 .topbar-icon-btn {
   width: 36px;
@@ -934,8 +950,8 @@ details[open] > summary::before {
 }
 .chip:hover {
   border-color: var(--primary);
-  color: var(--primary);
-  background: #eff6ff;
+  color: var(--primary-foreground);
+  background: var(--primary);
 }
 
 /* ── Responsive 2-col grid for detail page ───────────────────────────── */
@@ -1095,8 +1111,8 @@ details[open] > summary::before {
 }
 .st-chip:hover {
   border-color: var(--primary);
-  background: #eff6ff;
-  color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 /* Error */

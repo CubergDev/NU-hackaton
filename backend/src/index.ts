@@ -1,20 +1,20 @@
+import { cookie } from "@elysiajs/cookie";
 import { cors } from "@elysiajs/cors";
+import { jwt } from "@elysiajs/jwt";
 import { swagger } from "@elysiajs/swagger";
 import { Elysia } from "elysia";
+import { initDb } from "./db";
 import { config } from "./lib/config";
 import { assignmentsRoutes } from "./routes/assignments";
 import { authRoutes } from "./routes/auth";
+import { businessUnitsRoutes } from "./routes/business-units";
 import { dataLoaderRoutes } from "./routes/data-loader";
+import { ingestRoutes } from "./routes/ingest";
 import { managersRoutes } from "./routes/managers";
 import { starTaskRoutes } from "./routes/star-task";
 import { statsRoutes as baseStatsRoutes } from "./routes/stats";
 import { ticketsRoutes as baseTicketsRoutes } from "./routes/tickets";
-import { businessUnitsRoutes } from "./routes/business-units";
-import { ingestRoutes } from "./routes/ingest";
 import { ensureBucket } from "./services/minio";
-import { initDb } from "./db";
-import { jwt } from "@elysiajs/jwt";
-import { cookie } from "@elysiajs/cookie";
 
 // Ensure Database & migrations are ready
 await initDb();
@@ -29,7 +29,7 @@ const app = new Elysia()
     jwt({
       name: "jwt",
       secret: process.env.JWT_SECRET || "super-secret-key-change-me",
-    })
+    }),
   )
   .use(cookie())
   .derive(async ({ jwt, cookie: { auth_token } }) => {
@@ -53,7 +53,7 @@ const app = new Elysia()
       .use(assignmentsRoutes)
       .use(managersRoutes)
       .use(baseStatsRoutes)
-      .use(businessUnitsRoutes)
+      .use(businessUnitsRoutes),
   )
   .use(starTaskRoutes)
   .listen(config.port);
@@ -61,9 +61,9 @@ const app = new Elysia()
 console.log(`🔥 FIRE API running on http://localhost:${config.port}`);
 console.log(`📖 Swagger: http://localhost:${config.port}/docs`);
 
+import { handleTicketAnalysis } from "./jobs/analysis.worker";
 // ── Start analysis workers ──────────────────────────────────────────────────
 import { startWorkers } from "./services/queue";
-import { handleTicketAnalysis } from "./jobs/analysis.worker";
 
 startWorkers(3, handleTicketAnalysis);
 console.log("🤖 Analysis workers started (concurrency: 3)");

@@ -1,9 +1,13 @@
-import { Elysia, t } from "elysia";
-import { jwt } from "@elysiajs/jwt";
 import { cookie } from "@elysiajs/cookie";
-import { normalizeTicket, type TicketSource } from "../services/normalize";
-import { enqueueTicket, enqueueTickets, getQueueLength } from "../services/queue";
+import { jwt } from "@elysiajs/jwt";
+import { Elysia, t } from "elysia";
 import { v4 as uuidv4 } from "uuid";
+import { normalizeTicket, type TicketSource } from "../services/normalize";
+import {
+  enqueueTicket,
+  enqueueTickets,
+  getQueueLength,
+} from "../services/queue";
 
 /**
  * Universal ingest endpoint — accepts tickets from ANY channel.

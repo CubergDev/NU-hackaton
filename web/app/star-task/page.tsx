@@ -99,6 +99,7 @@ export default function StarTaskPage() {
       const res = await fetch("http://localhost:3001/star-task/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ messages: historyToSend }),
       });
       const data = (await res.json()) as StarTaskResult;
@@ -324,7 +325,15 @@ function DynamicChart({
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--bg-card)",
+              borderColor: "var(--border)",
+              color: "var(--text-primary)",
+              borderRadius: "8px",
+            }}
+            itemStyle={{ color: "var(--text-primary)" }}
+          />
         </PieChart>
       </ResponsiveContainer>
     );
@@ -336,7 +345,15 @@ function DynamicChart({
         <LineChart data={data}>
           <XAxis dataKey={nameKey} tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} />
-          <Tooltip />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "var(--bg-card)",
+              borderColor: "var(--border)",
+              color: "var(--text-primary)",
+              borderRadius: "8px",
+            }}
+            itemStyle={{ color: "var(--text-primary)" }}
+          />
           <Line
             type="monotone"
             dataKey={valueKey}
@@ -375,7 +392,16 @@ function DynamicChart({
             <YAxis tick={{ fontSize: 11 }} />
           </>
         )}
-        <Tooltip />
+        <Tooltip
+          cursor={{ fill: "var(--bg-hover)" }}
+          contentStyle={{
+            backgroundColor: "var(--bg-card)",
+            borderColor: "var(--border)",
+            color: "var(--text-primary)",
+            borderRadius: "8px",
+          }}
+          itemStyle={{ color: "var(--text-primary)" }}
+        />
         <Bar
           dataKey={valueKey}
           fill="#2563EB"

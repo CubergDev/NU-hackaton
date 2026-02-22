@@ -2,9 +2,9 @@
  * Batch processing service — finds unanalyzed tickets and queues them.
  */
 
-import { db } from "../db";
-import { tickets, ticketAnalysis } from "../db/schema";
 import { eq, isNull, sql } from "drizzle-orm";
+import { db } from "../db";
+import { ticketAnalysis, tickets } from "../db/schema";
 import { normalizeTicket } from "./normalize";
 import { enqueueTickets } from "./queue";
 

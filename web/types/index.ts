@@ -13,6 +13,7 @@ export interface TicketRow {
   id: number;
   guid: string;
   segment: "Mass" | "VIP" | "Priority" | string;
+  contact: string | null;
   description: string;
   latitude: number | null;
   longitude: number | null;
@@ -54,6 +55,7 @@ export interface TicketDetail {
     gender: string | null;
     birthDate: string | null;
     segment: string | null;
+    contact: string | null;
     description: string | null;
     businessUnitId: number | null;
     latitude: number | null;

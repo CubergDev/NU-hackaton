@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
+import postgres from "postgres";
 import { config } from "../lib/config";
 import * as schema from "./schema";
 
